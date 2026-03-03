@@ -57,7 +57,6 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             $user = User::where('role', 'user')
-                ->where('name', $request->name)
                 ->where('email', $request->email)
                 ->first();
 

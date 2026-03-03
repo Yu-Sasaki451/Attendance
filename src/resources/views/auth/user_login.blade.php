@@ -7,17 +7,18 @@
 
 @section('content')
 <form class="login-form" action="/login" method="post">
+    @csrf
     <div class="login-form__inner">
         <h1 class="login-form__header">ログイン</h1>
         <span class="login-form__span">メールアドレス</span>
-        <input class="login-form__input" type="text">
+        <input class="login-form__input" type="text" name="email" value="{{ old('email') }}">
         <div class="form-error">
             @error('password')
             {{ $message }}
             @enderror
         </div>
         <span class="login-form__span">パスワード</span>
-        <input class="login-form__input" type="text">
+        <input class="login-form__input" type="password" name="password">
         <div class="form-error">
             @error('password')
             {{ $message }}
