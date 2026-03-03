@@ -18,7 +18,6 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function (){
-    Route::view('/','home')->name('home');
-    //Route::view('/attendance','user.attendance')->name('user.attendance');
-    //Route::view('/admin/attendance/list','admin.index')->name('admin.index');
+    Route::view('/attendance','user.attendance')->name('user.attendance');
+    Route::view('/admin/attendance/list','admin.index')->name('admin.index');
 });
