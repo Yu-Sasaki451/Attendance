@@ -84,3 +84,9 @@
     background-color: white;
     color: black;
 }
+
+.attendance-message {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 40px;
+}
