@@ -24,6 +24,9 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/attendance/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
     Route::post('/attendance/break-start', [AttendanceController::class, 'breakStart'])->name('attendance.break-start');
     Route::post('/attendance/break-end', [AttendanceController::class, 'breakEnd'])->name('attendance.break-end');
+
+    Route::get('/attendance/list',[AttendanceController::class,'list'])->name('attendance.index');
+    Route::get('/attendance/detail/{id}', [AttendanceController::class, 'detail'])->name('attendance.detail');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

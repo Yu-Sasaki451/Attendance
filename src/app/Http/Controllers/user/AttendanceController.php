@@ -137,6 +137,69 @@ class AttendanceController extends Controller
     return redirect()->route('user.attendance');
     }
 
+    public function list(Request $request)
+    {
+        $currentMonth = $request->filled('month')
+            ? \Carbon\Carbon::createFromFormat('Y-m', $request->month)
+            : now();
 
+        $attendances = Attendance::with('breakTimes')
+            ->where('user_id', auth()->id())
+            ->whereYear('date', $currentMonth->year)
+            ->whereMonth('date', $currentMonth->month)
+            ->get()
+            ->keyBy('date');
 
+        $days = collect(\Carbon\CarbonPeriod::create(
+            $currentMonth->copy()->startOfMonth(),
+            $currentMonth->copy()->endOfMonth()
+        ))->map(function ($day) use ($attendances) {
+            $attendance = $attendances->get($day->toDateString());
+
+            $breakMinutes = $attendance
+                ? $attendance->breakTimes->sum(function ($breakTime) {
+                    if (!$breakTime->in_at || !$breakTime->out_at) {
+                        return 0;
+                    }
+
+                    return \Carbon\Carbon::parse($breakTime->out_at)->diffInMinutes(
+                        \Carbon\Carbon::parse($breakTime->in_at)
+                    );
+                })
+                : 0;
+
+            $workMinutes = $attendance && $attendance->in_at && $attendance->out_at
+                ? \Carbon\Carbon::parse($attendance->out_at)->diffInMinutes(
+                    \Carbon\Carbon::parse($attendance->in_at)
+                ) - $breakMinutes
+                : null;
+
+            return [
+                'id' => $attendance ? $attendance->id : null,
+                'label' => $day->format('m/d') . '(' . ['日', '月', '火', '水', '木', '金', '土'][$day->dayOfWeek] . ')',
+                'in_at' => $attendance && $attendance->in_at ? \Carbon\Carbon::parse($attendance->in_at)->format('H:i') : '',
+                'out_at' => $attendance && $attendance->out_at ? \Carbon\Carbon::parse($attendance->out_at)->format('H:i') : '',
+                'break_time' => $attendance ? sprintf('%d:%02d', intdiv($breakMinutes, 60), $breakMinutes % 60) : '',
+                'work_time' => is_null($workMinutes) ? '' : sprintf('%d:%02d', intdiv($workMinutes, 60), $workMinutes % 60),
+            ];
+        });
+
+        return view('user.attendance_index', [
+            'days' => $days,
+            'currentMonthLabel' => $currentMonth->format('Y/m'),
+            'previousMonth' => $currentMonth->copy()->subMonth()->format('Y-m'),
+            'nextMonth' => $currentMonth->copy()->addMonth()->format('Y-m'),
+        ]);
+    }
+
+    public function detail($id)
+    {
+        $attendance = Attendance::with('breakTimes')
+            ->where('user_id', auth()->id())
+            ->findOrFail($id);
+
+        return view('user.attendance_detail', [
+            'attendance' => $attendance,
+        ]);
+    }
 }

@@ -1,27 +1,4 @@
 
-/*　-----　ヘッダー右側のナビ部分 -----*/
-
-.header-nav {
-    width: 400px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-}
-
-.nav-link {
-    text-decoration: none;
-    color: white;
-}
-
-.nav-button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-}
-
 /* ----- main部分 -----*/
 
 .main {
