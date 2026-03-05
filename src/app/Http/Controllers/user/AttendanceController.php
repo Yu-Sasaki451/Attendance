@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\BreakTime;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
@@ -140,7 +141,7 @@ class AttendanceController extends Controller
     public function list(Request $request)
     {
         $currentMonth = $request->filled('month')
-            ? \Carbon\Carbon::createFromFormat('Y-m', $request->month)
+            ? Carbon::createFromFormat('Y-m', $request->month)
             : now();
 
         $attendances = Attendance::with('breakTimes')
@@ -162,23 +163,23 @@ class AttendanceController extends Controller
                         return 0;
                     }
 
-                    return \Carbon\Carbon::parse($breakTime->out_at)->diffInMinutes(
-                        \Carbon\Carbon::parse($breakTime->in_at)
+                    return Carbon::parse($breakTime->out_at)->diffInMinutes(
+                        Carbon::parse($breakTime->in_at)
                     );
                 })
                 : 0;
 
             $workMinutes = $attendance && $attendance->in_at && $attendance->out_at
-                ? \Carbon\Carbon::parse($attendance->out_at)->diffInMinutes(
-                    \Carbon\Carbon::parse($attendance->in_at)
+                ? Carbon::parse($attendance->out_at)->diffInMinutes(
+                    Carbon::parse($attendance->in_at)
                 ) - $breakMinutes
                 : null;
 
             return [
                 'id' => $attendance ? $attendance->id : null,
                 'label' => $day->format('m/d') . '(' . ['日', '月', '火', '水', '木', '金', '土'][$day->dayOfWeek] . ')',
-                'in_at' => $attendance && $attendance->in_at ? \Carbon\Carbon::parse($attendance->in_at)->format('H:i') : '',
-                'out_at' => $attendance && $attendance->out_at ? \Carbon\Carbon::parse($attendance->out_at)->format('H:i') : '',
+                'in_at' => $attendance && $attendance->in_at ? Carbon::parse($attendance->in_at)->format('H:i') : '',
+                'out_at' => $attendance && $attendance->out_at ? Carbon::parse($attendance->out_at)->format('H:i') : '',
                 'break_time' => $attendance ? sprintf('%d:%02d', intdiv($breakMinutes, 60), $breakMinutes % 60) : '',
                 'work_time' => is_null($workMinutes) ? '' : sprintf('%d:%02d', intdiv($workMinutes, 60), $workMinutes % 60),
             ];
@@ -198,8 +199,116 @@ class AttendanceController extends Controller
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
+        $dateLabel = $attendance->date
+            ? Carbon::parse($attendance->date)->format('Y/m/d')
+            : '';
+
+        $inAtLabel = $attendance->in_at
+            ? Carbon::parse($attendance->in_at)->format('H:i')
+            : '';
+
+        $outAtLabel = $attendance->out_at
+            ? Carbon::parse($attendance->out_at)->format('H:i')
+            : '';
+
+        $breakRows = $attendance->breakTimes
+            ->values()
+            ->map(function ($breakTime) {
+                return [
+                    'in_at' => $breakTime->in_at
+                        ? Carbon::parse($breakTime->in_at)->format('H:i')
+                        : '',
+                    'out_at' => $breakTime->out_at
+                        ? Carbon::parse($breakTime->out_at)->format('H:i')
+                        : '',
+                ];
+            })
+            ->filter(function ($breakRow) {
+                return $breakRow['in_at'] !== '' || $breakRow['out_at'] !== '';
+            })
+            ->values()
+            ->map(function ($breakRow, $index) {
+                $breakRow['label'] = $index === 0 ? '休憩時間' : '休憩時間' . ($index + 1);
+                return $breakRow;
+            })
+            ->all();
+
+        $nextIndex = count($breakRows);
+        $breakRows[] = [
+            'label' => $nextIndex === 0 ? '休憩時間' : '休憩時間' . ($nextIndex + 1),
+            'in_at' => '',
+            'out_at' => '',
+        ];
+
+        $userName = $attendance->user->name ?? '';
+
         return view('user.attendance_detail', [
             'attendance' => $attendance,
+            'dateLabel' => $dateLabel,
+            'inAtLabel' => $inAtLabel,
+            'outAtLabel' => $outAtLabel,
+            'breakRows' => $breakRows,
+            'userName' => $userName,
         ]);
+    }
+
+    
+    public function update(Request $request, $id)
+    {
+        $attendance = Attendance::where('user_id', auth()->id())->findOrFail($id);
+        $date = $attendance->date;
+
+        $data = [
+            'in_at' => $date . ' ' . $request->input('in_at') . ':00',
+            'out_at' => $date . ' ' . $request->input('out_at') . ':00',
+            'note' => $request->input('note'),
+        ];
+
+        $attendance->update($data);
+
+        $breakData = [
+            'break_in_at' => $request->input('break_in_at', []),
+            'break_out_at' => $request->input('break_out_at', []),
+        ];
+
+        $existingBreakTimes = $attendance->breakTimes()
+            ->orderBy('id')
+            ->get();
+
+        $breakCount = count($breakData['break_in_at']);
+
+        for ($i = 0; $i < $breakCount; $i++) {
+            $breakInAt = $breakData['break_in_at'][$i] ?? '';
+            $breakOutAt = $breakData['break_out_at'][$i] ?? '';
+
+            if ($breakInAt === '' && $breakOutAt === '') {
+                if (isset($existingBreakTimes[$i])) {
+                    $existingBreakTimes[$i]->update([
+                        'in_at' => null,
+                        'out_at' => null,
+                    ]);
+                }
+                continue;
+            }
+
+            if ($breakInAt === '' || $breakOutAt === '') {
+                continue;
+            }
+
+            if (isset($existingBreakTimes[$i])) {
+                $existingBreakTimes[$i]->update([
+                    'in_at' => $date . ' ' . $breakInAt . ':00',
+                    'out_at' => $date . ' ' . $breakOutAt . ':00',
+                ]);
+            } else {
+                BreakTime::create([
+                    'attendance_id' => $attendance->id,
+                    'in_at' => $date . ' ' . $breakInAt . ':00',
+                    'out_at' => $date . ' ' . $breakOutAt . ':00',
+                ]);
+            }
+        }
+
+        return redirect('/attendance/list');
     }
 }
