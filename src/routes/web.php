@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\AttendanceController;
-use App\Http\Controllers\CorrectionRequestController;
+use App\Http\Controllers\User\CorrectionRequestController;
 
 /*
 |--------------------------------------------------------------------------

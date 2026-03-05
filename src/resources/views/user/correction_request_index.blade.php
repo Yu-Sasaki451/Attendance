@@ -52,23 +52,23 @@
         aria-labelledby="tab-pending"
         tabindex="0" {{ $activeTab === 'pending' ? '' : 'hidden' }}>
         <div>
-            <table>
-                <tr>
-                    <th>状態</th>
-                    <th>名前</th>
-                    <th>対象日時</th>
-                    <th>申込理由</th>
-                    <th>申込日時</th>
-                    <th>詳細</th>
+            <table class="request-list__table">
+                <tr class="table-header__row">
+                    <th class="status-col">状態</th>
+                    <th class="name-col">名前</th>
+                    <th class="date-col"h>対象日時</th>
+                    <th class="reason-col">申込理由</th>
+                    <th class="request-col">申込日時</th>
+                    <th class="detail-col">詳細</th>
                 </tr>
                 @foreach($pendingRequests as $pendingRequest)
-                <tr>
-                    <td>{{ $pendingRequest->status_label }}</td>
-                    <td>{{ $userName }}</td>
-                    <td>{{ $pendingRequest->target_date }}</td>
-                    <td>{{ $pendingRequest->reason }}</td>
-                    <td>{{ $pendingRequest->applied_date }}</td>
-                    <td>詳細</td>
+                <tr class="table-row">
+                    <td class="status-col">{{ $pendingRequest->status_label }}</td>
+                    <td class="name-col">{{ $userName }}</td>
+                    <td class="date-col">{{ $pendingRequest->target_date }}</td>
+                    <td class="reason-col">{{ $pendingRequest->reason }}</td>
+                    <td class="request-col">{{ $pendingRequest->applied_date }}</td>
+                    <td class="detail-col">詳細</td>
                 </tr>
                 @endforeach
             </table>
@@ -83,23 +83,23 @@
         tabindex="0" {{ $activeTab === 'approved' ? '' : 'hidden' }}>
 
         <div>
-            <table>
-                <tr>
-                    <th>状態</th>
-                    <th>名前</th>
-                    <th>対象日時</th>
-                    <th>申込理由</th>
-                    <th>申込日時</th>
-                    <th>詳細</th>
+            <table class="request-list__table">
+                <tr class="table-header__row">
+                    <th class="status-col">状態</th>
+                    <th class="name-col">名前</th>
+                    <th class="date-col">対象日時</th>
+                    <th class="reason-col">申込理由</th>
+                    <th class="request-col">申込日時</th>
+                    <th class="detail-col">詳細</th>
                 </tr>
                 @foreach($approvedRequests as $approvedRequest)
-                <tr>
-                    <td>{{ $approvedRequest['status'] }}</td>
-                    <td>{{ $userName }}</td>
-                    <td>{{ $approvedRequest['requested_in_at'] }}</td>
-                    <td>{{ $approvedRequest['reason'] }}</td>
-                    <td>{{ $approvedRequest['requested_out_at'] }}</td>
-                    <td>詳細</td>
+                <tr class="table-row">
+                    <td class="status-col">{{ $approvedRequest['status'] }}</td>
+                    <td class="name-col">{{ $userName }}</td>
+                    <td class="date-col">{{ $approvedRequest['requested_in_at'] }}</td>
+                    <td class="reason-col">{{ $approvedRequest['reason'] }}</td>
+                    <td class="request-col">{{ $approvedRequest['requested_out_at'] }}</td>
+                    <td class="detail-col">詳細</td>
                 </tr>
                 @endforeach
             </table>
