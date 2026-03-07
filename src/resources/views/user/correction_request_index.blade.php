@@ -68,7 +68,7 @@
                     <td class="date-col">{{ $pendingRequest->target_date }}</td>
                     <td class="reason-col">{{ $pendingRequest->reason }}</td>
                     <td class="request-col">{{ $pendingRequest->applied_date }}</td>
-                    <td class="detail-col">詳細</td>
+                    <td class="detail-col"><a href="/attendance/detail/{{ $pendingRequest->attendance_id }}">詳細</a></td>
                 </tr>
                 @endforeach
             </table>

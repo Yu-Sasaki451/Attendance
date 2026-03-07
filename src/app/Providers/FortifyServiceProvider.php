@@ -6,20 +6,18 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Requests\UserLoginRequest;
+use App\Http\Responses\LoginResponse;
+use App\Http\Responses\LogoutResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Laravel\Fortify\Fortify;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use App\Http\Responses\LoginResponse;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
-use App\Http\Responses\LogoutResponse;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
-
-
+use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Requests\LoginRequest as FortifyLoginRequest;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -30,6 +28,8 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
         $this->app->singleton(LogoutResponseContract::class, LogoutResponse::class);
+        $this->app->bind(FortifyLoginRequest::class, UserLoginRequest::class);
+
     }
 
     /**
@@ -48,30 +48,6 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::registerView(function () {
             return view('auth.register');
-        });
-
-        Fortify::authenticateUsing(function (Request $request) {
-            if ($request->input('login_type') === 'admin') {
-                $user = User::where('role', 'admin')
-                    ->where('email', $request->email)
-                    ->first();
-
-                if ($user && Hash::check($request->password, $user->password)) {
-                    return $user;
-                }
-
-                return null;
-            }
-
-            $user = User::where('role', 'user')
-                ->where('email', $request->email)
-                ->first();
-
-            if ($user && Hash::check($request->password, $user->password)) {
-                return $user;
-            }
-
-            return null;
         });
 
         RateLimiter::for('login', function (Request $request) {

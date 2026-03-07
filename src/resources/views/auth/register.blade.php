@@ -14,7 +14,7 @@
         <span class="register-form__span">名前</span>
         <input class="register-form__input" type="text" name="name" value="{{ old('name') }}">
         <div class="form-error">
-            @error('password')
+            @error('name')
             {{ $message }}
             @enderror
         </div>
@@ -22,7 +22,7 @@
         <span class="register-form__span">メールアドレス</span>
         <input class="register-form__input" type="text" name="email" value="{{ old('email') }}">
         <div class="form-error">
-            @error('password')
+            @error('email')
             {{ $message }}
             @enderror
         </div>
