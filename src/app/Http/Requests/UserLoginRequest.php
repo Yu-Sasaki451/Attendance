@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Fortify\Http\Requests\LoginRequest as FortifyLoginRequest;
 use Laravel\Fortify\LoginRateLimiter;
 
-class UserLoginRequest extends FormRequest
+class UserLoginRequest extends FortifyLoginRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -39,16 +39,18 @@ class UserLoginRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator){
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $email = $this->input('email');
+            $password = $this->input('password');
+            $loginType = $this->input('login_type');
 
-        $validator->after(function($validator){
-        $email = $this->input('email');
-        $password = $this->input('password');
-        $loginType = $this->input('login_type');
+            if (! $email || ! $password) {
+                return;
+            }
 
-        if(!$email || !$password) {return;}
-
-        $query = User::where('email', $email);
+            $query = User::where('email', $email);
 
             if ($loginType === 'admin') {
                 $query->where('role', 'admin');
@@ -62,5 +64,6 @@ class UserLoginRequest extends FormRequest
                 app(LoginRateLimiter::class)->increment($this);
                 $validator->errors()->add('email', 'ログイン情報が登録されていません。');
             }
-    });
-}}
+        });
+    }
+}
