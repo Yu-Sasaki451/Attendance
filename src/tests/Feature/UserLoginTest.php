@@ -10,7 +10,9 @@ class UserLoginTest extends TestCase
     use RefreshDatabase;
 
     public function test_メールアドレス未入力(){
-        $user = $this->makeUser();
+        $user = $this->createRoleUser([
+            'password' => bcrypt('12345678'),
+        ]);
 
         $data = [
             'email' => $user->email,
@@ -25,7 +27,9 @@ class UserLoginTest extends TestCase
 
     public function test_パスワード未入力(){
 
-        $user = $this->makeUser();
+        $user = $this->createRoleUser([
+            'password' => bcrypt('12345678'),
+        ]);
 
         $data = [
             'email' => $user->email,
@@ -40,7 +44,9 @@ class UserLoginTest extends TestCase
 
     public function test_メールアドレス不一致(){
 
-        $user = $this->makeUser();
+        $user = $this->createRoleUser([
+            'password' => bcrypt('12345678'),
+        ]);
 
         $data = [
             'email' => $user->email,
@@ -60,7 +66,9 @@ class UserLoginTest extends TestCase
 
     public function test_パスワード不一致(){
 
-        $user = $this->makeUser();
+        $user = $this->createRoleUser([
+            'password' => bcrypt('12345678'),
+        ]);
 
         $data = [
             'email' => $user->email,
@@ -80,7 +88,9 @@ class UserLoginTest extends TestCase
 
     public function test_ログイン成功()
     {
-        $user = $this->makeUser();
+        $user = $this->createRoleUser([
+            'password' => bcrypt('12345678'),
+        ]);
 
         $data = [
             'email' => $user->email,
