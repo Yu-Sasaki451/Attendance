@@ -18,10 +18,14 @@ class AttendanceSeeder extends Seeder
     public function run()
     {
         $users = User::where('role', 'user')->orderBy('id')->get();
+        $startDate = Carbon::today()->subMonths(3);
+        $endDate = Carbon::today()->subDay();
 
         foreach ($users as $user) {
-            for ($day = 7; $day >= 1; $day--) {
-                $date = Carbon::today()->subDays($day);
+            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+                if ($date->isWeekend()) {
+                    continue;
+                }
 
                 $inHour = rand(8, 9);
                 $inMinute = rand(0, 1) * 30;

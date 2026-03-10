@@ -13,11 +13,18 @@
 /*　-----　ヘッダー右側のナビ部分 -----*/
 
 .header-nav {
-    width: 400px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 
+}
+
+.header-nav--admin {
+    width: 600px;
+}
+
+.header-nav--user {
+    width: 400px;
 }
 
 .nav-link {

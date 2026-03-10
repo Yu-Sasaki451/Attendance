@@ -15,7 +15,7 @@
         <span class="admin-login__span">メールアドレス</span>
         <input class="admin-login__input" type="text" name="email" value="{{ old('email') }}">
         <div class="form-error">
-            @error('password')
+            @error('email')
             {{ $message }}
             @enderror
         </div>

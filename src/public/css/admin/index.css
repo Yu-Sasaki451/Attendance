@@ -1,0 +1,63 @@
+.main {
+    min-height: calc(100vh - 72px);
+    background-color: whitesmoke;
+}
+
+.attendance-list {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding-top: 32px;
+    padding-bottom: 32px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    border-left: 6px solid #000;
+    padding-left: 16px;
+    margin-top: 0;
+    margin-bottom: 32px;
+}
+
+/*　-----　日付選択するとこ -----*/
+
+.date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: white;
+    border-radius: 10px;
+    padding: 0 20px;
+}
+
+.date-link {
+    text-decoration: none;
+}
+
+.date-current {
+    font-weight: bold;
+}
+
+/* ----- テーブル -----*/
+
+.attendance-table {
+    width: 100%;
+    background-color: white;
+    border-radius: 10px;
+    margin-top: 40px;
+}
+
+.attendance-table th,
+.attendance-table td {
+    text-align: center;
+    padding: 8px 20px;
+}
+
+.table-title {
+    border-bottom: 2px solid gainsboro;
+}
+
+.table-row {
+    border-top: 1px solid gainsboro;
+}

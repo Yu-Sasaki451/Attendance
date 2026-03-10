@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="{{ asset('css/user/attendance_detail.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin/detail.css') }}">
 @endsection
 
 @section('header-menu')
-@include('partials.header.user')
+@include('partials.header.admin')
 @endsection
 
 @section('content')
