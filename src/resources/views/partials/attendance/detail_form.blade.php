@@ -14,52 +14,35 @@
         <tr class="table-row">
             <th class="in-col">出勤・退勤</th>
             <td>
-                @if($isPending)
-                <span class="detail-static-time">{{ $inAtLabel }}</span>
-                @else
-                <input class="detail-input detail-input-time" type="text" name="in_at" value="{{ $inAtLabel }}" @disabled($isPending)>
-                @endif
-                〜
-                @if($isPending)
-                <span class="detail-static-time">{{ $outAtLabel }}</span>
-                @else
-                <input class="detail-input detail-input-time" type="text" name="out_at" value="{{ $outAtLabel }}" @disabled($isPending)>
-                @endif
+                <input class="detail-input detail-input-time" type="time" name="in_at" value="{{ $inAtLabel }}" @readonly($isPending)>
+                <span>〜</span>
+                <input class="detail-input detail-input-time" type="time" name="out_at" value="{{ $outAtLabel }}" @readonly($isPending)>
             </td>
         </tr>
         @foreach($breakRows as $breakRow)
         <tr class="table-row">
             <th class="break-col">{{ $breakRow['label'] }}</th>
             <td>
-                @if($isPending)
-                <span class="detail-static-time">{{ $breakRow['in_at'] }}</span>
-                @else
-                <input class="detail-input detail-input-time" type="text" name="break_in_at[]" value="{{ $breakRow['in_at'] }}" @disabled($isPending)>
-                @endif
-                〜
-                @if($isPending)
-                <span class="detail-static-time">{{ $breakRow['out_at'] }}</span>
-                @else
-                <input class="detail-input detail-input-time" type="text" name="break_out_at[]" value="{{ $breakRow['out_at'] }}" @disabled($isPending)>
-                @endif
+                <input class="detail-input detail-input-time" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}" @readonly($isPending)>
+                <span> ~ </span>
+                <input class="detail-input detail-input-time" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}" @readonly($isPending)>
             </td>
         </tr>
         @endforeach
         <tr class="table-row">
             <th>備考</th>
             <td>
-                @if($isPending)
-                <p class="detail-static-note">{{ $attendance->note }}</p>
-                @else
-                <textarea class="detail-textarea" name="note" @disabled($isPending)>{{ $attendance->note }}</textarea>
-                @endif
+                <textarea class="detail-textarea" name="note" @readonly($isPending)>{{ $noteLabel }}</textarea>
             </td>
         </tr>
     </table>
 
-    @if($isPending)
-    <p class="detail-pending-text">* 承認待ちのため修正はできません。</p>
+    @if($isPending && $isAdmin)
+    <button class="detail-button" type="button">承認</button>
+    @elseif($isPending)
+        <p class="detail-pending-text">* 承認待ちのため修正はできません。</p>
     @else
-    <button class="detail-button" type="submit">修正</button>
+        <button class="detail-button" type="submit">修正</button>
     @endif
+
 </form>

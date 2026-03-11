@@ -22,18 +22,33 @@ class CorrectionRequestController extends Controller
         }
 
         $date = $attendance->date;
-        $inAt = $request->input('in_at');
-        $outAt = $request->input('out_at');
+        $inAt = trim((string) $request->input('in_at', ''));
+        $outAt = trim((string) $request->input('out_at', ''));
         $note = (string) $request->input('note', '');
 
-        CorrectionRequest::create([
+        $correctionRequest = CorrectionRequest::create([
             'attendance_id' => $attendance->id,
-            'requested_in_at' => $inAt !== '' ? $date . ' ' . $inAt . ':00' : null,
-            'requested_out_at' => $outAt !== '' ? $date . ' ' . $outAt . ':00' : null,
+            'requested_in_at' => $inAt === '' ? null : Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $inAt),
+            'requested_out_at' => $outAt === '' ? null : Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $outAt),
             'reason' => $note,
             'status' => 'pending',
             'note' => $note,
         ]);
+
+        foreach ($request->input('break_in_at', []) as $index => $breakInAt) {
+            $breakInAt = trim((string) $breakInAt);
+            $breakOutAt = trim((string) ($request->input('break_out_at', [])[$index] ?? ''));
+
+            if ($breakInAt === '' && $breakOutAt === '') {
+                continue;
+            }
+
+            $correctionRequest->breakTimes()->create([
+                'break_index' => $index + 1,
+                'requested_in_at' => $breakInAt === '' ? null : Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $breakInAt),
+                'requested_out_at' => $breakOutAt === '' ? null : Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $breakOutAt),
+            ]);
+        }
 
         return redirect()->route('attendance.detail', ['id' => $attendance->id]);
     }

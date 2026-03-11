@@ -65,27 +65,47 @@ class AttendanceController extends Controller
 
     public function detail($id)
     {
-    $attendance = Attendance::with(['user', 'breakTimes'])
+
+    $isAdmin = auth()->user()->role === 'admin';
+
+    $attendance = Attendance::with(['user', 'breakTimes','correctionRequests'])
         ->findOrFail($id);
+
+    $pendingRequest = $attendance->correctionRequests()
+        ->where('status','pending')
+        ->latest()
+        ->first();
 
     $dateLabel = $attendance->date
         ? Carbon::parse($attendance->date)->format('Y/m/d')
         : '';
 
-    $inAtLabel = $attendance->in_at
-        ? Carbon::parse($attendance->in_at)->format('H:i')
-        : '';
+    $inAtLabel = $pendingRequest && $pendingRequest->requested_in_at
+            ? Carbon::parse($pendingRequest->requested_in_at)->format('H:i')
+            : ($attendance->in_at ? Carbon::parse($attendance->in_at)->format('H:i') : '');
 
-    $outAtLabel = $attendance->out_at
-        ? Carbon::parse($attendance->out_at)->format('H:i')
-        : '';
+        $outAtLabel = $pendingRequest && $pendingRequest->requested_out_at
+            ? Carbon::parse($pendingRequest->requested_out_at)->format('H:i')
+            : ($attendance->out_at ? Carbon::parse($attendance->out_at)->format('H:i') : '');
 
-    $breakRows = $attendance->breakTimes
+        $noteLabel = $pendingRequest
+            ? $pendingRequest->note
+            : $attendance->note;
+
+    $breakTimes = $pendingRequest
+        ? $pendingRequest->breakTimes
+        : $attendance->breakTimes;
+
+    $breakRows = $breakTimes
         ->values()
-        ->map(function ($breakTime) {
+        ->map(function ($breakTime) use ($pendingRequest) {
             return [
-                'in_at' => $breakTime->in_at ? Carbon::parse($breakTime->in_at)->format('H:i') : '',
-                'out_at' => $breakTime->out_at ? Carbon::parse($breakTime->out_at)->format('H:i') : '',
+                'in_at' => $pendingRequest
+                    ? ($breakTime->requested_in_at ? Carbon::parse($breakTime->requested_in_at)->format('H:i') : '')
+                    : ($breakTime->in_at ? Carbon::parse($breakTime->in_at)->format('H:i') : ''),
+                'out_at' => $pendingRequest
+                    ? ($breakTime->requested_out_at ? Carbon::parse($breakTime->requested_out_at)->format('H:i') : '')
+                    : ($breakTime->out_at ? Carbon::parse($breakTime->out_at)->format('H:i') : ''),
             ];
         })
         ->filter(function ($breakRow) {
@@ -99,9 +119,7 @@ class AttendanceController extends Controller
         ->all();
 
     $userName = $attendance->user->name ?? '';
-    $isPending = $attendance->correctionRequests()
-        ->where('status', 'pending')
-        ->exists();
+    $isPending = !is_null($pendingRequest);
 
     if (!$isPending) {
         $nextIndex = count($breakRows);
@@ -117,9 +135,11 @@ class AttendanceController extends Controller
         'dateLabel' => $dateLabel,
         'inAtLabel' => $inAtLabel,
         'outAtLabel' => $outAtLabel,
+        'noteLabel' => $noteLabel,
         'breakRows' => $breakRows,
         'userName' => $userName,
         'isPending' => $isPending,
+        'isAdmin' => $isAdmin,
     ]);
     }
 

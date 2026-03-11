@@ -22,4 +22,9 @@ class CorrectionRequest extends Model
     {
         return $this->belongsTo(Attendance::class);
     }
+
+    public function breakTimes()
+    {
+        return $this->hasMany(CorrectionRequestBreakTime::class);
+    }
 }
