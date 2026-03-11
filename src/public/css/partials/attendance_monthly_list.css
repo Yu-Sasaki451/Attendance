@@ -20,8 +20,6 @@
     margin-bottom: 32px;
 }
 
-/*　-----　月選択するとこ -----*/
-
 .month-nav {
     display: flex;
     align-items: center;
@@ -38,8 +36,6 @@
 .month-current {
     font-weight: bold;
 }
-
-/* ----- テーブル -----*/
 
 .attendance-table {
     width: 100%;

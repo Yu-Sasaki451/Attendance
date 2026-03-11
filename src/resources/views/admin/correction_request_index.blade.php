@@ -5,7 +5,7 @@
 @endsection
 
 @section('header-menu')
-@include('partials.header.user')
+@include('partials.header.admin')
 @endsection
 
 @section('content')

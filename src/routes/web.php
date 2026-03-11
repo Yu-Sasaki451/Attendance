@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\AttendanceController as UserAttendanceController;
 use App\Http\Controllers\User\CorrectionRequestController;
 use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
+use App\Http\Controllers\Admin\CorrectionRequestController as AdminCorrectionRequestController;
 
 
 /*
@@ -43,4 +44,5 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admin/attendance/{id}', [AdminAttendanceController::class, 'detail'])->name('admin.attendance.detail');
     Route::get('admin/staff/list', [AdminAttendanceController::class,'staff_list'])->name('staff.list');
     Route::get('admin/attendance/staff/{id}', [AdminAttendanceController::class, 'staff_attendance'])->name('admin.staff.attendance');
+    Route::get('/admin/stamp_correction_request/list', [AdminCorrectionRequestController::class, 'correctionIndex'])->name('admin.correction.index');
 });

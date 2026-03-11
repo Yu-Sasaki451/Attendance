@@ -40,17 +40,20 @@ class CorrectionRequestController extends Controller
 
     public function correctionIndex(Request $request){
         $activeTab = $request->query('tab', 'pending');
-        $userName = auth()->user()->name;
 
         $pendingRequests = CorrectionRequest::whereRelation('attendance', 'user_id', auth()->id())
             ->where('status', 'pending')
             ->latest()
             ->get()
             ->map(function ($request) {
-                $request->status_label = $request->status === 'pending' ? '承認待ち' : '承認済み';
-                $request->target_date = Carbon::parse($request->requested_in_at)->format('Y/m/d');
-                $request->applied_date = $request->created_at->format('Y/m/d');
-                return $request;
+                return[
+                    'status_label' => $request->status === 'pending' ? '承認待ち' : '承認済み',
+                    'user_name' => auth()->user()->name,
+                    'target_date' => Carbon::parse($request->requested_in_at)->format('Y/m/d'),
+                    'reason' => $request->reason,
+                    'applied_date' => $request->created_at->format('Y/m/d'),
+                    'detail_url' => route('attendance.detail',['id' => $request->attendance_id]),
+                ];
             });
 
         $approvedRequests = CorrectionRequest::whereRelation('attendance', 'user_id', auth()->id())
@@ -58,12 +61,16 @@ class CorrectionRequestController extends Controller
             ->latest()
             ->get()
             ->map(function ($request) {
-                $request->status_label = $request->status === 'pending' ? '承認待ち' : '承認済み';
-                $request->target_date = Carbon::parse($request->requested_in_at)->format('Y/m/d');
-                $request->applied_date = $request->created_at->format('Y/m/d');
-                return $request;
+                return[
+                    'status_label' => $request->status === 'pending' ? '承認待ち' : '承認済み',
+                    'user_name' => auth()->user()->name,
+                    'target_date' => Carbon::parse($request->requested_in_at)->format('Y/m/d'),
+                    'reason' => $request->reason,
+                    'applied_date' => $request->created_at->format('Y/m/d'),
+                    'detail_url' => route('attendance.detail',['id' => $request->attendance_id]),
+                ];
             });
 
-        return view('user.correction_request_index', compact('pendingRequests', 'approvedRequests', 'activeTab', 'userName'));
+        return view('user.correction_request_index', compact('pendingRequests', 'approvedRequests', 'activeTab'));
     }
 }
