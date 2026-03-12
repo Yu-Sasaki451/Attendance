@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\User;
+use App\Models\CorrectionRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -65,82 +66,26 @@ class AttendanceController extends Controller
 
     public function detail($id)
     {
+        $attendance = Attendance::with([
+            'user',
+            'breakTimes',
+            'correctionRequests.breakTimes',
+        ])->findOrFail($id);
 
-    $isAdmin = auth()->user()->role === 'admin';
+        $correctionRequest = $attendance->correctionRequests
+            ->sort(function ($left, $right) {
+                $leftPriority = $left->status === 'pending' ? 0 : 1;
+                $rightPriority = $right->status === 'pending' ? 0 : 1;
 
-    $attendance = Attendance::with(['user', 'breakTimes','correctionRequests'])
-        ->findOrFail($id);
+                if ($leftPriority !== $rightPriority) {
+                    return $leftPriority <=> $rightPriority;
+                }
 
-    $pendingRequest = $attendance->correctionRequests()
-        ->where('status','pending')
-        ->latest()
-        ->first();
+                return $right->created_at->timestamp <=> $left->created_at->timestamp;
+            })
+            ->first();
 
-    $dateLabel = $attendance->date
-        ? Carbon::parse($attendance->date)->format('Y/m/d')
-        : '';
-
-    $inAtLabel = $pendingRequest && $pendingRequest->requested_in_at
-            ? Carbon::parse($pendingRequest->requested_in_at)->format('H:i')
-            : ($attendance->in_at ? Carbon::parse($attendance->in_at)->format('H:i') : '');
-
-        $outAtLabel = $pendingRequest && $pendingRequest->requested_out_at
-            ? Carbon::parse($pendingRequest->requested_out_at)->format('H:i')
-            : ($attendance->out_at ? Carbon::parse($attendance->out_at)->format('H:i') : '');
-
-        $noteLabel = $pendingRequest
-            ? $pendingRequest->note
-            : $attendance->note;
-
-    $breakTimes = $pendingRequest
-        ? $pendingRequest->breakTimes
-        : $attendance->breakTimes;
-
-    $breakRows = $breakTimes
-        ->values()
-        ->map(function ($breakTime) use ($pendingRequest) {
-            return [
-                'in_at' => $pendingRequest
-                    ? ($breakTime->requested_in_at ? Carbon::parse($breakTime->requested_in_at)->format('H:i') : '')
-                    : ($breakTime->in_at ? Carbon::parse($breakTime->in_at)->format('H:i') : ''),
-                'out_at' => $pendingRequest
-                    ? ($breakTime->requested_out_at ? Carbon::parse($breakTime->requested_out_at)->format('H:i') : '')
-                    : ($breakTime->out_at ? Carbon::parse($breakTime->out_at)->format('H:i') : ''),
-            ];
-        })
-        ->filter(function ($breakRow) {
-            return $breakRow['in_at'] !== '' || $breakRow['out_at'] !== '';
-        })
-        ->values()
-        ->map(function ($breakRow, $index) {
-            $breakRow['label'] = $index === 0 ? '休憩時間' : '休憩時間' . ($index + 1);
-            return $breakRow;
-        })
-        ->all();
-
-    $userName = $attendance->user->name ?? '';
-    $isPending = !is_null($pendingRequest);
-
-    if (!$isPending) {
-        $nextIndex = count($breakRows);
-        $breakRows[] = [
-            'label' => $nextIndex === 0 ? '休憩時間' : '休憩時間' . ($nextIndex + 1),
-            'in_at' => '',
-            'out_at' => '',
-        ];
-    }
-
-    return view('admin.detail', [
-        'attendance' => $attendance,
-        'dateLabel' => $dateLabel,
-        'inAtLabel' => $inAtLabel,
-        'outAtLabel' => $outAtLabel,
-        'noteLabel' => $noteLabel,
-        'breakRows' => $breakRows,
-        'userName' => $userName,
-        'isPending' => $isPending,
-        'isAdmin' => $isAdmin,
-    ]);
+        return $this->renderDetail($attendance, $correctionRequest);
     }
 
     public function staff_list(){
@@ -207,6 +152,79 @@ class AttendanceController extends Controller
             'currentMonthLabel' => $currentMonth->format('Y/m'),
             'previousMonth' => $currentMonth->copy()->subMonth()->format('Y-m'),
             'nextMonth' => $currentMonth->copy()->addMonth()->format('Y-m'),
+        ]);
+    }
+
+    private function renderDetail(Attendance $attendance, ?CorrectionRequest $correctionRequest)
+    {
+        $isAdmin = auth()->user()->role === 'admin';
+
+        $dateLabel = $attendance->date
+            ? Carbon::parse($attendance->date)->format('Y/m/d')
+            : '';
+
+        $inAtLabel = $correctionRequest && $correctionRequest->requested_in_at
+            ? Carbon::parse($correctionRequest->requested_in_at)->format('H:i')
+            : ($attendance->in_at ? Carbon::parse($attendance->in_at)->format('H:i') : '');
+
+        $outAtLabel = $correctionRequest && $correctionRequest->requested_out_at
+            ? Carbon::parse($correctionRequest->requested_out_at)->format('H:i')
+            : ($attendance->out_at ? Carbon::parse($attendance->out_at)->format('H:i') : '');
+
+        $noteLabel = $correctionRequest
+            ? $correctionRequest->note
+            : $attendance->note;
+
+        $breakTimes = $correctionRequest
+            ? $correctionRequest->breakTimes
+            : $attendance->breakTimes;
+
+        $breakRows = $breakTimes
+            ->values()
+            ->map(function ($breakTime) use ($correctionRequest) {
+                return [
+                    'in_at' => $correctionRequest
+                        ? ($breakTime->requested_in_at ? Carbon::parse($breakTime->requested_in_at)->format('H:i') : '')
+                        : ($breakTime->in_at ? Carbon::parse($breakTime->in_at)->format('H:i') : ''),
+                    'out_at' => $correctionRequest
+                        ? ($breakTime->requested_out_at ? Carbon::parse($breakTime->requested_out_at)->format('H:i') : '')
+                        : ($breakTime->out_at ? Carbon::parse($breakTime->out_at)->format('H:i') : ''),
+                ];
+            })
+            ->filter(function ($breakRow) {
+                return $breakRow['in_at'] !== '' || $breakRow['out_at'] !== '';
+            })
+            ->values()
+            ->map(function ($breakRow, $index) {
+                $breakRow['label'] = $index === 0 ? '休憩時間' : '休憩時間' . ($index + 1);
+                return $breakRow;
+            })
+            ->all();
+
+        $isPending = $correctionRequest?->status === 'pending';
+        $isApproved = $correctionRequest?->status === 'approved';
+
+        if (!$isPending) {
+            $nextIndex = count($breakRows);
+            $breakRows[] = [
+                'label' => $nextIndex === 0 ? '休憩時間' : '休憩時間' . ($nextIndex + 1),
+                'in_at' => '',
+                'out_at' => '',
+            ];
+        }
+
+        return view('admin.detail', [
+            'attendance' => $attendance,
+            'correctionRequest' => $correctionRequest,
+            'dateLabel' => $dateLabel,
+            'inAtLabel' => $inAtLabel,
+            'outAtLabel' => $outAtLabel,
+            'noteLabel' => $noteLabel,
+            'breakRows' => $breakRows,
+            'userName' => $attendance->user->name ?? '',
+            'isPending' => $isPending,
+            'isApproved' => $isApproved,
+            'isAdmin' => $isAdmin,
         ]);
     }
 }

@@ -1,4 +1,8 @@
-<form class="attendance-list {{ $isPending ? 'is-pending' : '' }}" action="{{ route('attendance.detail.update', ['id' => $attendance->id]) }}" method="POST">
+<form class="attendance-list {{ $isPending ? 'is-pending' : '' }}"
+    action="{{ $isAdmin && $isPending
+        ? route('admin.correction.approve', ['id' => $correctionRequest->id])
+        : route('attendance.detail.update', ['id' => $attendance->id]) }}"
+    method="POST">
     @csrf
     <h1 class="page-title">勤怠詳細</h1>
 
@@ -38,11 +42,14 @@
     </table>
 
     @if($isPending && $isAdmin)
-    <button class="detail-button" type="button">承認</button>
+        <button class="detail-button" type="submit">承認</button>
     @elseif($isPending)
         <p class="detail-pending-text">* 承認待ちのため修正はできません。</p>
+    @elseif($isApproved)
+        <p class="detail-pending-text">* 承認済みです。</p>
     @else
         <button class="detail-button" type="submit">修正</button>
     @endif
+
 
 </form>

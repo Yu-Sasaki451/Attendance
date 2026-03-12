@@ -251,6 +251,11 @@ class AttendanceController extends Controller
 
         $userName = $attendance->user->name ?? '';
         $isPending = !is_null($pendingRequest);
+        $isApproved = $attendance->correctionRequests()
+            ->where('status', 'approved')
+            ->exists();
+
+
 
         if (!$isPending) {
             $nextIndex = count($breakRows);
@@ -270,6 +275,7 @@ class AttendanceController extends Controller
             'breakRows' => $breakRows,
             'userName' => $userName,
             'isPending' => $isPending,
+            'isApproved' => $isApproved,
             'isAdmin' => $isAdmin,
         ]);
     }

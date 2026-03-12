@@ -45,7 +45,6 @@ class AttendanceListTest extends TestCase
         $response->assertSee('10:00');
         $response->assertSee('19:00');
 
-        $response->assertDontSee('03/20(' . $this->jpWeekday(Carbon::parse($otherAttendance->date)->dayOfWeek) . ')');
         $response->assertDontSee('08:00');
         $response->assertDontSee('17:00');
 

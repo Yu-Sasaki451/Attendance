@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\AttendanceController as UserAttendanceController;
 use App\Http\Controllers\User\CorrectionRequestController;
@@ -35,8 +36,16 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/attendance/detail/{id}', [UserAttendanceController::class, 'detail'])->name('attendance.detail');
     Route::post('/attendance/detail/{id}', [CorrectionRequestController::class, 'store'])->name('attendance.detail.update');
 
-    Route::get('/stamp_correction_request/list',[CorrectionRequestController::class,'correctionIndex'])->name('correction.index');
+});
 
+Route::middleware('auth')->group(function () {
+    Route::get('/stamp_correction_request/list', function (Request $request) {
+        if (auth()->user()->role === 'admin') {
+            return app(AdminCorrectionRequestController::class)->correctionIndex($request);
+        }
+
+        return app(CorrectionRequestController::class)->correctionIndex($request);
+    })->name('correction.index');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -44,5 +53,5 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admin/attendance/{id}', [AdminAttendanceController::class, 'detail'])->name('admin.attendance.detail');
     Route::get('admin/staff/list', [AdminAttendanceController::class,'staff_list'])->name('staff.list');
     Route::get('admin/attendance/staff/{id}', [AdminAttendanceController::class, 'staff_attendance'])->name('admin.staff.attendance');
-    Route::get('/admin/stamp_correction_request/list', [AdminCorrectionRequestController::class, 'correctionIndex'])->name('admin.correction.index');
+    Route::post('/stamp_correction_request/approve/{id}',[AdminCorrectionRequestController::class,'approve'])->name('admin.correction.approve');
 });

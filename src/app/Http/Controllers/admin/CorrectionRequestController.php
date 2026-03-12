@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\CorrectionRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
 
 class CorrectionRequestController extends Controller
 {
@@ -37,5 +39,37 @@ class CorrectionRequestController extends Controller
             ->map($formatRequest);
 
         return view('admin.correction_request_index', compact('pendingRequests', 'approvedRequests', 'activeTab'));
+    }
+
+    public function approve($id){
+
+        $correctionRequest = CorrectionRequest::with(['attendance', 'breakTimes'])
+            ->findOrFail($id);
+
+        $attendance = $correctionRequest->attendance;
+
+        DB::transaction(function() use ($correctionRequest,$attendance){
+        $attendance->update([
+            'in_at' => $correctionRequest->requested_in_at,
+            'out_at' => $correctionRequest->requested_out_at,
+            'note' => $correctionRequest->note,
+        ]);
+
+        $attendance->breakTimes()->delete();
+
+        foreach ($correctionRequest->breakTimes as $breakTime) {
+            $attendance->breakTimes()->create([
+                'in_at' => $breakTime->requested_in_at,
+                'out_at' => $breakTime->requested_out_at,
+            ]);
+        }
+
+        $correctionRequest->update([
+            'status' => 'approved',
+        ]);
+        });
+
+        return redirect()->route('admin.attendance.detail', ['id' => $attendance->id]);
+
     }
 }
