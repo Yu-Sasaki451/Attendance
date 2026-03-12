@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\CorrectionRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class AttendanceController extends Controller
 {
@@ -227,4 +229,47 @@ class AttendanceController extends Controller
             'isAdmin' => $isAdmin,
         ]);
     }
+
+    private function formatDateTime($date, $time)
+    {
+        $time = trim((string) $time);
+
+        return $time === ''
+            ? null
+            : Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $time);
+    }
+
+    public function update(Request $request, $id){
+
+    $attendance = Attendance::findOrFail($id);
+    $date = $attendance->date;
+    $breakInTimes = $request->input('break_in_at', []);
+    $breakOutTimes = $request->input('break_out_at', []);
+
+    DB::transaction(function () use ($attendance, $request, $date, $breakInTimes, $breakOutTimes) {
+        $attendance->update([
+            'in_at' => $this->formatDateTime($date, $request->input('in_at')),
+            'out_at' => $this->formatDateTime($date, $request->input('out_at')),
+            'note' => $request->input('note'),
+        ]);
+
+        $attendance->breakTimes()->delete();
+
+        foreach ($breakInTimes as $index => $breakInAt) {
+            $breakOutAt = $breakOutTimes[$index] ?? '';
+
+            if ($breakInAt === '' && $breakOutAt === '') {
+                continue;
+            }
+
+            $attendance->breakTimes()->create([
+                'in_at' => $this->formatDateTime($date, $breakInAt),
+                'out_at' => $this->formatDateTime($date, $breakOutAt),
+            ]);
+        }
+    });
+
+    return redirect()->route('admin.attendance.detail', ['id' => $attendance->id]);
+}
+
 }
