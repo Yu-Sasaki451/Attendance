@@ -2,7 +2,6 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('css/partials/attendance_detail_form.css') }}">
-<link rel="stylesheet" href="{{ asset('css/error.css') }}">
 @endsection
 
 @section('header-menu')

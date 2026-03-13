@@ -27,30 +27,78 @@
     margin-top: 40px;
 }
 
-.attendance-table th:first-child,
-.attendance-table td:first-child {
-    text-align: left;
-}
-
 .attendance-table th,
 .attendance-table td {
     text-align: center;
-    padding-top: 14px;
-    padding-bottom: 14px;
+    padding-top: 6px;
+    padding-bottom: 0;
+}
+
+.attendance-table th:first-child {
+    text-align: left;
 }
 
 .attendance-table th {
     vertical-align: middle;
     padding-left: 50px;
     padding-right: 50px;
-    color:gray;
+    color: gray;
+    transform: translateY(-4px);
 }
 
 .attendance-table td {
     text-align: left;
-    vertical-align: top;
+    vertical-align: middle;
     padding-left: 20px;
     padding-right: 20px;
+}
+
+.table-row {
+    height: 76px;
+    border-top: 1px solid gainsboro;
+}
+
+.table-row:last-child {
+    height: 156px;
+}
+
+.detail-name-row,
+.detail-inline-row,
+.detail-field {
+    width: 280px;
+}
+
+.detail-name-row,
+.detail-inline-row {
+    min-height: 38px;
+}
+
+.detail-name-row,
+.detail-inline-row {
+    display: flex;
+    align-items: center;
+}
+
+.detail-inline-row {
+    justify-content: space-between;
+}
+
+.detail-name-text,
+.detail-date-text,
+.detail-time-separator {
+    color: #111827;
+    font-weight: 700;
+}
+
+.detail-date-text {
+    width: 80px;
+    text-align: center;
+}
+
+.detail-time-separator {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .detail-input,
@@ -58,17 +106,9 @@
     width: 100%;
     border: 1px solid gainsboro;
     border-radius: 4px;
-    padding: 8px 10px;
+    padding: 4px 10px;
     font-size: 14px;
     background-color: #fff;
-}
-
-.detail-input:disabled,
-.detail-textarea:disabled {
-    background-color: #f3f4f6;
-    color: #6b7280;
-    cursor: not-allowed;
-    opacity: 1;
 }
 
 .attendance-list.is-pending .detail-input,
@@ -84,7 +124,6 @@
 
 .detail-textarea {
     display: block;
-    width: 320px;
     min-height: 100px;
     resize: vertical;
 }
@@ -92,52 +131,34 @@
 .detail-input-time {
     width: 80px;
     text-align: center;
-}
-
-.detail-time-range {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    width: 320px;
-    min-height: 38px;
-}
-
-.detail-name-row {
-    display: flex;
-    align-items: center;
-    width: 320px;
-    min-height: 38px;
-    padding-left: 24px;
-}
-
-.detail-name-text {
-    display: inline-block;
-    color: #111827;
-    font-weight: 700;
-}
-
-.detail-time-separator {
-    color: #111827;
-    font-weight: 700;
-    text-align: center;
-    width: 20px;
-    flex-shrink: 0;
-}
-
-.detail-date-text {
-    display: inline-block;
-    width: 100%;
-    color: #111827;
-    font-weight: 700;
-    text-align: center;
+    font-size: 18px;
 }
 
 .detail-input-time::-webkit-calendar-picker-indicator {
     display: none;
 }
 
-.table-row {
-    border-top: 1px solid gainsboro;
+.detail-field {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 12px;
+    height: 100%;
+    box-sizing: border-box;
+    padding-top: 6px;
+}
+
+.detail-field > .detail-inline-row {
+    align-self: center;
+}
+
+.detail-field .validate-error {
+    min-height: 1.2em;
+    font-size: 12px;
+    line-height: 1.2;
+    color: red;
+}
+
+.detail-field .validate-error:empty {
+    visibility: hidden;
 }
 
 .detail-button {
@@ -159,20 +180,4 @@
     font-size: 14px;
     font-weight: 700;
     text-align: right;
-}
-
-.detail-static-time,
-.detail-static-note {
-    display: inline-block;
-    font-size: 14px;
-    color: #111827;
-}
-
-.detail-static-time {
-    min-width: 40px;
-    text-align: center;
-}
-
-.detail-static-note {
-    margin: 0;
 }

@@ -10,8 +10,8 @@
 
     <table class="attendance-table">
         <tr class="table-row">
-            <th class="name-row">名前</th>
-            <td>
+            <th class="name-col">名前</th>
+            <td class="name-col">
                 <div class="detail-name-row">
                     <span class="detail-name-text">{{ $userName }}</span>
                 </div>
@@ -19,8 +19,8 @@
         </tr>
         <tr class="table-row">
             <th class="date-col">日付</th>
-            <td>
-                <div class="detail-time-range">
+            <td class="date-col">
+                <div class="detail-inline-row">
                     <span class="detail-date-text">{{ $dateYearLabel }}</span>
                     <span class="detail-time-separator"></span>
                     <span class="detail-date-text">{{ $dateMonthDayLabel }}</span>
@@ -29,44 +29,50 @@
         </tr>
         <tr class="table-row">
             <th class="in-col">出勤・退勤</th>
-            <td>
-                <div class="detail-time-range">
-                    <input class="detail-input detail-input-time" type="time" name="in_at" value="{{ $inAtLabel }}" @readonly($isPending)>
-                    <span class="detail-time-separator">〜</span>
-                    <input class="detail-input detail-input-time" type="time" name="out_at" value="{{ $outAtLabel }}" @readonly($isPending)>
-                </div>
-                <div class="validate-error">
-                    @error('attendance_time')
-                    {{ $message }}
-                    @enderror
+            <td class="in-col">
+                <div class="detail-field">
+                    <div class="detail-inline-row">
+                        <input class="detail-input detail-input-time" type="time" name="in_at" value="{{ $inAtLabel }}" @readonly($isPending)>
+                        <span class="detail-time-separator">〜</span>
+                        <input class="detail-input detail-input-time" type="time" name="out_at" value="{{ $outAtLabel }}" @readonly($isPending)>
+                    </div>
+                    <div class="validate-error">
+                        @error('attendance_time')
+                        {{ $message }}
+                        @enderror
+                    </div>
                 </div>
             </td>
         </tr>
         @foreach($breakRows as $breakRow)
         <tr class="table-row">
             <th class="break-col">{{ $breakRow['label'] }}</th>
-            <td>
-                <div class="detail-time-range">
-                    <input class="detail-input detail-input-time" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}" @readonly($isPending)>
-                    <span class="detail-time-separator">〜</span>
-                    <input class="detail-input detail-input-time" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}" @readonly($isPending)>
-                </div>
-                <div class="validate-error">
-                    @error("break_time.$loop->index")
-                    {{ $message }}
-                    @enderror
+            <td class="break-col">
+                <div class="detail-field">
+                    <div class="detail-inline-row">
+                        <input class="detail-input detail-input-time" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}" @readonly($isPending)>
+                        <span class="detail-time-separator">〜</span>
+                        <input class="detail-input detail-input-time" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}" @readonly($isPending)>
+                    </div>
+                    <div class="validate-error">
+                        @error("break_time.$loop->index")
+                        {{ $message }}
+                        @enderror
+                    </div>
                 </div>
             </td>
         </tr>
         @endforeach
         <tr class="table-row">
-            <th>備考</th>
-            <td>
-                <textarea class="detail-textarea" name="note" @readonly($isPending)>{{ $noteLabel }}</textarea>
-                <div class="validate-error">
-                    @error('note')
-                    {{ $message }}
-                    @enderror
+            <th class="note-col">備考</th>
+            <td class="note-col">
+                <div class="detail-field">
+                    <textarea class="detail-textarea" name="note" @readonly($isPending)>{{ $noteLabel }}</textarea>
+                    <div class="validate-error">
+                        @error('note')
+                        {{ $message }}
+                        @enderror
+                    </div>
                 </div>
             </td>
         </tr>
