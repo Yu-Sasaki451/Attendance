@@ -207,8 +207,12 @@ class AttendanceController extends Controller
             ->latest()
             ->first();
 
-        $dateLabel = $attendance->date
-            ? Carbon::parse($attendance->date)->format('Y/m/d')
+        $dateYearLabel = $attendance->date
+            ? Carbon::parse($attendance->date)->format('Y年')
+            : '';
+
+        $dateMonthDayLabel = $attendance->date
+            ? Carbon::parse($attendance->date)->format('n月j日')
             : '';
 
         $inAtLabel = $pendingRequest && $pendingRequest->requested_in_at
@@ -244,7 +248,7 @@ class AttendanceController extends Controller
             })
             ->values()
             ->map(function ($breakRow, $index) {
-                $breakRow['label'] = $index === 0 ? '休憩時間' : '休憩時間' . ($index + 1);
+                $breakRow['label'] = $index === 0 ? '休憩' : '休憩' . ($index + 1);
                 return $breakRow;
             })
             ->all();
@@ -260,7 +264,7 @@ class AttendanceController extends Controller
         if (!$isPending) {
             $nextIndex = count($breakRows);
             $breakRows[] = [
-                'label' => $nextIndex === 0 ? '休憩時間' : '休憩時間' . ($nextIndex + 1),
+                'label' => $nextIndex === 0 ? '休憩' : '休憩' . ($nextIndex + 1),
                 'in_at' => '',
                 'out_at' => '',
             ];
@@ -268,7 +272,8 @@ class AttendanceController extends Controller
 
         return view('user.attendance_detail', [
             'attendance' => $attendance,
-            'dateLabel' => $dateLabel,
+            'dateYearLabel' => $dateYearLabel,
+            'dateMonthDayLabel' => $dateMonthDayLabel,
             'inAtLabel' => $inAtLabel,
             'outAtLabel' => $outAtLabel,
             'noteLabel' => $noteLabel,

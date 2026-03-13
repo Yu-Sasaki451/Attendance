@@ -7,10 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\CorrectionRequest;
 use Carbon\Carbon;
+use App\Http\Requests\AttendanceDetailRequest;
 
 class CorrectionRequestController extends Controller
 {
-    public function store(Request $request, $id)
+    public function store(AttendanceDetailRequest $request, $id)
     {
         $attendance = Attendance::where('user_id', auth()->id())->findOrFail($id);
         $alreadyPending = $attendance->correctionRequests()

@@ -1,0 +1,6 @@
+.validate-error {
+    font-size: 14px;
+    line-height: 1.2;
+    min-height: 1.2em;
+    color: red;
+}

@@ -11,27 +11,51 @@
     <table class="attendance-table">
         <tr class="table-row">
             <th class="name-row">名前</th>
-            <td>{{ $userName }}</td>
+            <td>
+                <div class="detail-name-row">
+                    <span class="detail-name-text">{{ $userName }}</span>
+                </div>
+            </td>
         </tr>
         <tr class="table-row">
             <th class="date-col">日付</th>
-            <td>{{ $dateLabel }}</td>
+            <td>
+                <div class="detail-time-range">
+                    <span class="detail-date-text">{{ $dateYearLabel }}</span>
+                    <span class="detail-time-separator"></span>
+                    <span class="detail-date-text">{{ $dateMonthDayLabel }}</span>
+                </div>
+            </td>
         </tr>
         <tr class="table-row">
             <th class="in-col">出勤・退勤</th>
             <td>
-                <input class="detail-input detail-input-time" type="time" name="in_at" value="{{ $inAtLabel }}" @readonly($isPending)>
-                <span>〜</span>
-                <input class="detail-input detail-input-time" type="time" name="out_at" value="{{ $outAtLabel }}" @readonly($isPending)>
+                <div class="detail-time-range">
+                    <input class="detail-input detail-input-time" type="time" name="in_at" value="{{ $inAtLabel }}" @readonly($isPending)>
+                    <span class="detail-time-separator">〜</span>
+                    <input class="detail-input detail-input-time" type="time" name="out_at" value="{{ $outAtLabel }}" @readonly($isPending)>
+                </div>
+                <div class="validate-error">
+                    @error('attendance_time')
+                    {{ $message }}
+                    @enderror
+                </div>
             </td>
         </tr>
         @foreach($breakRows as $breakRow)
         <tr class="table-row">
             <th class="break-col">{{ $breakRow['label'] }}</th>
             <td>
-                <input class="detail-input detail-input-time" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}" @readonly($isPending)>
-                <span> ~ </span>
-                <input class="detail-input detail-input-time" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}" @readonly($isPending)>
+                <div class="detail-time-range">
+                    <input class="detail-input detail-input-time" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}" @readonly($isPending)>
+                    <span class="detail-time-separator">〜</span>
+                    <input class="detail-input detail-input-time" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}" @readonly($isPending)>
+                </div>
+                <div class="validate-error">
+                    @error("break_time.$loop->index")
+                    {{ $message }}
+                    @enderror
+                </div>
             </td>
         </tr>
         @endforeach
@@ -39,6 +63,11 @@
             <th>備考</th>
             <td>
                 <textarea class="detail-textarea" name="note" @readonly($isPending)>{{ $noteLabel }}</textarea>
+                <div class="validate-error">
+                    @error('note')
+                    {{ $message }}
+                    @enderror
+                </div>
             </td>
         </tr>
     </table>

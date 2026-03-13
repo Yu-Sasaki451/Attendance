@@ -9,6 +9,7 @@ use App\Models\CorrectionRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\AttendanceDetailRequest;
 
 
 class AttendanceController extends Controller
@@ -161,8 +162,12 @@ class AttendanceController extends Controller
     {
         $isAdmin = auth()->user()->role === 'admin';
 
-        $dateLabel = $attendance->date
-            ? Carbon::parse($attendance->date)->format('Y/m/d')
+        $dateYearLabel = $attendance->date
+            ? Carbon::parse($attendance->date)->format('Y年')
+            : '';
+
+        $dateMonthDayLabel = $attendance->date
+            ? Carbon::parse($attendance->date)->format('n月j日')
             : '';
 
         $inAtLabel = $correctionRequest && $correctionRequest->requested_in_at
@@ -198,7 +203,7 @@ class AttendanceController extends Controller
             })
             ->values()
             ->map(function ($breakRow, $index) {
-                $breakRow['label'] = $index === 0 ? '休憩時間' : '休憩時間' . ($index + 1);
+                $breakRow['label'] = $index === 0 ? '休憩' : '休憩' . ($index + 1);
                 return $breakRow;
             })
             ->all();
@@ -209,7 +214,7 @@ class AttendanceController extends Controller
         if (!$isPending) {
             $nextIndex = count($breakRows);
             $breakRows[] = [
-                'label' => $nextIndex === 0 ? '休憩時間' : '休憩時間' . ($nextIndex + 1),
+                'label' => $nextIndex === 0 ? '休憩' : '休憩' . ($nextIndex + 1),
                 'in_at' => '',
                 'out_at' => '',
             ];
@@ -218,7 +223,8 @@ class AttendanceController extends Controller
         return view('admin.detail', [
             'attendance' => $attendance,
             'correctionRequest' => $correctionRequest,
-            'dateLabel' => $dateLabel,
+            'dateYearLabel' => $dateYearLabel,
+            'dateMonthDayLabel' => $dateMonthDayLabel,
             'inAtLabel' => $inAtLabel,
             'outAtLabel' => $outAtLabel,
             'noteLabel' => $noteLabel,
@@ -239,7 +245,7 @@ class AttendanceController extends Controller
             : Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $time);
     }
 
-    public function update(Request $request, $id){
+    public function update(AttendanceDetailRequest $request, $id){
 
     $attendance = Attendance::findOrFail($id);
     $date = $attendance->date;
