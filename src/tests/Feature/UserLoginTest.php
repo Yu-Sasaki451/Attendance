@@ -9,13 +9,20 @@ class UserLoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_メールアドレス未入力(){
-        $user = $this->createRoleUser([
+    private $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = $this->createRoleUser([
             'password' => bcrypt('12345678'),
         ]);
+    }
 
+    public function test_メールアドレス未入力(){
         $data = [
-            'email' => $user->email,
+            'email' => $this->user->email,
             'password' => '12345678',
         ];
         $data['email'] = '';
@@ -26,13 +33,8 @@ class UserLoginTest extends TestCase
     }
 
     public function test_パスワード未入力(){
-
-        $user = $this->createRoleUser([
-            'password' => bcrypt('12345678'),
-        ]);
-
         $data = [
-            'email' => $user->email,
+            'email' => $this->user->email,
             'password' => '12345678',
         ];
         $data['password'] = '';
@@ -43,13 +45,8 @@ class UserLoginTest extends TestCase
     }
 
     public function test_メールアドレス不一致(){
-
-        $user = $this->createRoleUser([
-            'password' => bcrypt('12345678'),
-        ]);
-
         $data = [
-            'email' => $user->email,
+            'email' => $this->user->email,
             'password' => '12345678',
         ];
         $data['email'] = 'test@exam.com';
@@ -65,13 +62,8 @@ class UserLoginTest extends TestCase
     }
 
     public function test_パスワード不一致(){
-
-        $user = $this->createRoleUser([
-            'password' => bcrypt('12345678'),
-        ]);
-
         $data = [
-            'email' => $user->email,
+            'email' => $this->user->email,
             'password' => '12345678',
         ];
         $data['password'] = '12345689';
@@ -88,18 +80,14 @@ class UserLoginTest extends TestCase
 
     public function test_ログイン成功()
     {
-        $user = $this->createRoleUser([
-            'password' => bcrypt('12345678'),
-        ]);
-
         $data = [
-            'email' => $user->email,
+            'email' => $this->user->email,
             'password' => '12345678',
         ];
 
         $this->post('/login', $data)
             ->assertRedirect('/attendance');
 
-        $this->assertAuthenticatedAs($user);
+        $this->assertAuthenticatedAs($this->user);
     }
 }

@@ -7,14 +7,21 @@ use Carbon\Carbon;
 
 class AttendanceTest extends TestCase
 {
+    private $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = $this->createRoleUser();
+    }
+
     public function test_日時確認()
     {
-        $user = $this->createRoleUser();
-
         $fixedNow = Carbon::create(2026, 3, 8, 9, 5, 0, 'Asia/Tokyo');
         Carbon::setTestNow($fixedNow);
 
-        $response = $this->actingAs($user)->get('/attendance');
+        $response = $this->actingAs($this->user)->get('/attendance');
 
         $response->assertStatus(200);
         $response->assertSee($fixedNow->format('Y年n月j日'));

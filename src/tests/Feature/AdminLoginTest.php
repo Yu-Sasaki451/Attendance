@@ -3,20 +3,26 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class AdminLoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_メールアドレス未入力(){
-        $user = $this->createRoleAdmin([
+    private $admin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->admin = $this->createRoleAdmin([
             'password' => bcrypt('12345678'),
         ]);
+    }
 
+    public function test_メールアドレス未入力(){
         $data = [
-            'email' => $user->email,
+            'email' => $this->admin->email,
             'password' => '12345678',
             'login_type' => 'admin',
         ];
@@ -28,13 +34,8 @@ class AdminLoginTest extends TestCase
     }
 
     public function test_パスワード未入力(){
-
-        $user = $this->createRoleAdmin([
-            'password' => bcrypt('12345678'),
-        ]);
-
         $data = [
-            'email' => $user->email,
+            'email' => $this->admin->email,
             'password' => '12345678',
             'login_type' => 'admin',
         ];
@@ -46,13 +47,8 @@ class AdminLoginTest extends TestCase
     }
 
     public function test_メールアドレス不一致(){
-
-        $user = $this->createRoleAdmin([
-            'password' => bcrypt('12345678'),
-        ]);
-
         $data = [
-            'email' => $user->email,
+            'email' => $this->admin->email,
             'password' => '12345678',
             'login_type' => 'admin',
         ];
@@ -69,13 +65,8 @@ class AdminLoginTest extends TestCase
     }
 
     public function test_パスワード不一致(){
-
-        $user = $this->createRoleAdmin([
-            'password' => bcrypt('12345678'),
-        ]);
-
         $data = [
-            'email' => $user->email,
+            'email' => $this->admin->email,
             'password' => '12345678',
             'login_type' => 'admin',
         ];
@@ -93,12 +84,8 @@ class AdminLoginTest extends TestCase
 
     public function test_ログイン成功()
     {
-        $user = $this->createRoleAdmin([
-            'password' => bcrypt('12345678'),
-        ]);
-
         $data = [
-            'email' => $user->email,
+            'email' => $this->admin->email,
             'password' => '12345678',
             'login_type' => 'admin',
         ];
@@ -106,6 +93,6 @@ class AdminLoginTest extends TestCase
         $this->post('/login', $data)
             ->assertRedirect('/admin/attendance/list');
 
-        $this->assertAuthenticatedAs($user);
+        $this->assertAuthenticatedAs($this->admin);
     }
 }

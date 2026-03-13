@@ -10,15 +10,22 @@ class AttendanceClockOutTest extends TestCase
 {
     use RefreshDatabase;
 
+    private $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = $this->createRoleUser();
+    }
+
     public function test_退勤ボタンが正しく機能()
     {
-        $user = $this->createRoleUser();
-
-        $this->createAttendanceFor($user, [
+        $this->createAttendanceFor($this->user, [
             'in_at' => now()->subHour(),
         ]);
 
-        $attendancePage = $this->actingAs($user)->get('/attendance');
+        $attendancePage = $this->actingAs($this->user)->get('/attendance');
 
         $attendancePage->assertStatus(200);
         $attendancePage->assertSee('退勤');
@@ -33,19 +40,17 @@ class AttendanceClockOutTest extends TestCase
 
     public function test_出勤と退勤時刻を一覧で確認()
     {
-        $user = $this->createRoleUser();
-
         $clockInAt = Carbon::create(2026, 3, 8, 9, 0, 0, 'Asia/Tokyo');
         $clockOutAt = Carbon::create(2026, 3, 8, 18, 0, 0, 'Asia/Tokyo');
 
-        $this->createAttendanceFor($user, [
+        $this->createAttendanceFor($this->user, [
             'date' => $clockInAt->toDateString(),
             'in_at' => $clockInAt,
             'out_at' => $clockOutAt,
         ]);
 
         Carbon::setTestNow($clockInAt);
-        $this->actingAs($user)
+        $this->actingAs($this->user)
             ->post('/attendance/clock-in')
             ->assertRedirect('/attendance');
 

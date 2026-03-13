@@ -10,20 +10,28 @@ class AttendanceListTest extends TestCase
 {
     use RefreshDatabase;
 
+    private $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = $this->createRoleUser();
+    }
+
     public function test_自分が行った勤怠情報が全て表示される(): void
     {
-        $user = $this->createRoleUser();
         $otherUser = $this->createRoleUser();
 
         Carbon::setTestNow(Carbon::create(2026, 3, 15, 9, 0, 0, 'Asia/Tokyo'));
 
-        $firstAttendance = $this->createAttendanceFor($user, [
+        $firstAttendance = $this->createAttendanceFor($this->user, [
             'date' => '2026-03-01',
             'in_at' => '2026-03-01 09:00:00',
             'out_at' => '2026-03-01 18:00:00',
         ]);
 
-        $secondAttendance = $this->createAttendanceFor($user, [
+        $secondAttendance = $this->createAttendanceFor($this->user, [
             'date' => '2026-03-10',
             'in_at' => '2026-03-10 10:00:00',
             'out_at' => '2026-03-10 19:00:00',
@@ -35,7 +43,7 @@ class AttendanceListTest extends TestCase
             'out_at' => '2026-03-20 17:00:00',
         ]);
 
-        $response = $this->actingAs($user)->get('/attendance/list');
+        $response = $this->actingAs($this->user)->get('/attendance/list');
 
         $response->assertStatus(200);
         $response->assertSee('03/01(' . $this->jpWeekday(Carbon::parse($firstAttendance->date)->dayOfWeek) . ')');
@@ -53,11 +61,10 @@ class AttendanceListTest extends TestCase
 
     public function test_勤怠一覧画面に遷移した際に現在の月が表示される(): void
     {
-        $user = $this->createRoleUser();
         $fixedNow = Carbon::create(2026, 3, 15, 9, 0, 0, 'Asia/Tokyo');
         Carbon::setTestNow($fixedNow);
 
-        $response = $this->actingAs($user)->get('/attendance/list');
+        $response = $this->actingAs($this->user)->get('/attendance/list');
 
         $response->assertStatus(200);
         $response->assertSee($fixedNow->format('Y/m'));
@@ -67,17 +74,16 @@ class AttendanceListTest extends TestCase
 
     public function test_前月ボタン押下で前月の情報が表示される(): void
     {
-        $user = $this->createRoleUser();
         $fixedNow = Carbon::create(2026, 3, 15, 9, 0, 0, 'Asia/Tokyo');
         Carbon::setTestNow($fixedNow);
 
-        $this->createAttendanceFor($user, [
+        $this->createAttendanceFor($this->user, [
             'date' => '2026-02-10',
             'in_at' => '2026-02-10 09:00:00',
             'out_at' => '2026-02-10 18:00:00',
         ]);
 
-        $this->createAttendanceFor($user, [
+        $this->createAttendanceFor($this->user, [
             'date' => '2026-03-10',
             'in_at' => '2026-03-10 10:00:00',
             'out_at' => '2026-03-10 19:00:00',
@@ -85,11 +91,11 @@ class AttendanceListTest extends TestCase
 
         $previousMonth = $fixedNow->copy()->subMonth()->format('Y-m');
 
-        $this->actingAs($user)
+        $this->actingAs($this->user)
             ->get('/attendance/list')
             ->assertSee('/attendance/list?month=' . $previousMonth, false);
 
-        $response = $this->actingAs($user)->get('/attendance/list?month=' . $previousMonth);
+        $response = $this->actingAs($this->user)->get('/attendance/list?month=' . $previousMonth);
 
         $response->assertStatus(200);
         $response->assertSee('2026/02');
@@ -103,17 +109,16 @@ class AttendanceListTest extends TestCase
 
     public function test_翌月ボタン押下で翌月の情報が表示される(): void
     {
-        $user = $this->createRoleUser();
         $fixedNow = Carbon::create(2026, 3, 15, 9, 0, 0, 'Asia/Tokyo');
         Carbon::setTestNow($fixedNow);
 
-        $this->createAttendanceFor($user, [
+        $this->createAttendanceFor($this->user, [
             'date' => '2026-03-10',
             'in_at' => '2026-03-10 10:00:00',
             'out_at' => '2026-03-10 19:00:00',
         ]);
 
-        $this->createAttendanceFor($user, [
+        $this->createAttendanceFor($this->user, [
             'date' => '2026-04-05',
             'in_at' => '2026-04-05 09:00:00',
             'out_at' => '2026-04-05 18:00:00',
@@ -121,11 +126,11 @@ class AttendanceListTest extends TestCase
 
         $nextMonth = $fixedNow->copy()->addMonth()->format('Y-m');
 
-        $this->actingAs($user)
+        $this->actingAs($this->user)
             ->get('/attendance/list')
             ->assertSee('/attendance/list?month=' . $nextMonth, false);
 
-        $response = $this->actingAs($user)->get('/attendance/list?month=' . $nextMonth);
+        $response = $this->actingAs($this->user)->get('/attendance/list?month=' . $nextMonth);
 
         $response->assertStatus(200);
         $response->assertSee('2026/04');
@@ -139,14 +144,13 @@ class AttendanceListTest extends TestCase
 
     public function test_詳細を押下するとその日の勤怠詳細画面に遷移する(): void
     {
-        $user = $this->createRoleUser();
-        $attendance = $this->createAttendanceFor($user, [
+        $attendance = $this->createAttendanceFor($this->user, [
             'date' => '2026-03-10',
             'in_at' => '2026-03-10 09:00:00',
             'out_at' => '2026-03-10 18:00:00',
         ]);
 
-        $listResponse = $this->actingAs($user)->get('/attendance/list?month=2026-03');
+        $listResponse = $this->actingAs($this->user)->get('/attendance/list?month=2026-03');
 
         $listResponse->assertStatus(200);
         $listResponse->assertSee('/attendance/detail/' . $attendance->id, false);
