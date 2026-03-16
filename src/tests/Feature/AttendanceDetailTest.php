@@ -45,7 +45,8 @@ class AttendanceDetailTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('日付');
-        $response->assertSee($fixedNow->format('Y/m/d'));
+        $response->assertSee($fixedNow->format('Y年'));
+        $response->assertSee($fixedNow->format('n月j日'));
 
         Carbon::setTestNow();
     }

@@ -150,17 +150,18 @@ class AttendanceListTest extends TestCase
             'out_at' => '2026-03-10 18:00:00',
         ]);
 
-        $listResponse = $this->actingAs($this->user)->get('/attendance/list?month=2026-03');
+        $response = $this->actingAs($this->user)->get('/attendance/list?month=2026-03');
 
-        $listResponse->assertStatus(200);
-        $listResponse->assertSee('/attendance/detail/' . $attendance->id, false);
-        $listResponse->assertSee('詳細');
+        $response->assertStatus(200);
+        $response->assertSee('/attendance/detail/' . $attendance->id, false);
+        $response->assertSee('詳細');
 
-        $detailResponse = $this->get('/attendance/detail/' . $attendance->id);
+        $response = $this->get('/attendance/detail/' . $attendance->id);
 
-        $detailResponse->assertStatus(200);
-        $detailResponse->assertSee('勤怠詳細');
-        $detailResponse->assertSee('2026/03/10');
+        $response->assertStatus(200);
+        $response->assertSee('勤怠詳細');
+        $response->assertSee('2026年');
+        $response->assertSee('3月10日');
     }
 
 }

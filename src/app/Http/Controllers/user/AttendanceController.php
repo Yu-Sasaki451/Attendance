@@ -207,8 +207,12 @@ class AttendanceController extends Controller
             ->latest()
             ->first();
 
-        $dateLabel = $attendance->date
-            ? Carbon::parse($attendance->date)->format('Y/m/d')
+        $dateYearLabel = $attendance->date
+            ? Carbon::parse($attendance->date)->format('Y年')
+            : '';
+
+        $dateMonthDayLabel = $attendance->date
+            ? Carbon::parse($attendance->date)->format('n月j日')
             : '';
 
         $inAtLabel = $pendingRequest && $pendingRequest->requested_in_at
@@ -268,7 +272,8 @@ class AttendanceController extends Controller
 
         return view('user.attendance_detail', [
             'attendance' => $attendance,
-            'dateLabel' => $dateLabel,
+            'dateYearLabel' => $dateYearLabel,
+            'dateMonthDayLabel' => $dateMonthDayLabel,
             'inAtLabel' => $inAtLabel,
             'outAtLabel' => $outAtLabel,
             'noteLabel' => $noteLabel,

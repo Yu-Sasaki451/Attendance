@@ -21,7 +21,9 @@
             <th class="date-col">日付</th>
             <td class="date-col">
                 <div class="detail-inline-row">
-                    <span class="detail-date-text">{{ $dateLabel }}</span>
+                    <span class="detail-date-text">{{ $dateYearLabel }}</span>
+                    <span></span>
+                    <span class="detail-date-text">{{ $dateMonthDayLabel }}</span>
                 </div>
             </td>
         </tr>
