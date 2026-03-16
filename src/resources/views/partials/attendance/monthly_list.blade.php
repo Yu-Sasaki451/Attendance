@@ -31,4 +31,10 @@
         </tr>
         @endforeach
     </table>
+
+    @isset($csvExportUrl)
+    <div class="export-button">
+        <a class="export-link" href="{{ $csvExportUrl }}">CSV出力</a>
+    </div>
+    @endisset
 </div>

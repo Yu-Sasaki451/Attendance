@@ -16,5 +16,6 @@
     'nextMonthUrl' => route('admin.staff.attendance', ['id' => $staffId, 'month' => $nextMonth]),
     'detailRouteName' => 'admin.attendance.detail',
     'days' => $days,
+    'csvExportUrl' => route('admin.staff.attendance.csv', ['id' => $staffId, 'month' => request('month') ?? now()->format('Y-m')]),
 ])
 @endsection

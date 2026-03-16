@@ -55,4 +55,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('admin/staff/list', [AdminAttendanceController::class,'staff_list'])->name('staff.list');
     Route::get('admin/attendance/staff/{id}', [AdminAttendanceController::class, 'staff_attendance'])->name('admin.staff.attendance');
     Route::post('/stamp_correction_request/approve/{id}',[AdminCorrectionRequestController::class,'approve'])->name('admin.correction.approve');
+    Route::get('admin/attendance/staff/{id}/csv', [AdminAttendanceController::class, 'exportStaffAttendanceCsv'])
+    ->name('admin.staff.attendance.csv');
 });

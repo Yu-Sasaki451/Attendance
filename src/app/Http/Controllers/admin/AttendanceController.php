@@ -99,13 +99,7 @@ class AttendanceController extends Controller
         return view('admin.staff_index',compact('staffs'));
     }
 
-    public function staff_attendance(Request $request, $id)
-    {
-        $staff = User::where('role', 'user')->findOrFail($id);
-
-        $currentMonth = $request->filled('month')
-            ? Carbon::createFromFormat('Y-m', $request->month)
-            : now();
+    private function staffAttendanceDays($id,Carbon $currentMonth){
 
         $attendances = Attendance::with('breakTimes')
             ->where('user_id', $id)
@@ -147,6 +141,19 @@ class AttendanceController extends Controller
                 'work_time' => is_null($workMinutes) ? '' : sprintf('%d:%02d', intdiv($workMinutes, 60), $workMinutes % 60),
             ];
         });
+
+        return $days;
+    }
+
+    public function staff_attendance(Request $request, $id)
+    {
+        $staff = User::where('role', 'user')->findOrFail($id);
+
+        $currentMonth = $request->filled('month')
+            ? Carbon::createFromFormat('Y-m', $request->month)
+            : now();
+
+        $days = $this->staffAttendanceDays($id,$currentMonth);
 
         return view('admin.staff_attendance', [
             'staffId' => $staff->id,
@@ -276,6 +283,45 @@ class AttendanceController extends Controller
     });
 
     return redirect()->route('admin.index');
-}
+    }
+
+    public function exportStaffAttendanceCsv(Request $request, $id){
+    $staff = User::where('role', 'user')->findOrFail($id);
+
+    $currentMonth = $request->filled('month')
+        ? Carbon::createFromFormat('Y-m', $request->month)
+        : now();
+
+    $days = $this->staffAttendanceDays($id, $currentMonth);
+
+    $fileName = 'attendance_' . $staff->id . '_' . $currentMonth->format('Y_m') . '.csv';
+
+    return response()->streamDownload(function () use ($days) {
+        $handle = fopen('php://output', 'w');
+
+        fputcsv($handle, [
+            mb_convert_encoding('日付', 'SJIS-win', 'UTF-8'),
+            mb_convert_encoding('出勤', 'SJIS-win', 'UTF-8'),
+            mb_convert_encoding('退勤', 'SJIS-win', 'UTF-8'),
+            mb_convert_encoding('休憩', 'SJIS-win', 'UTF-8'),
+            mb_convert_encoding('合計', 'SJIS-win', 'UTF-8'),
+        ]);
+
+        foreach ($days as $day) {
+            fputcsv($handle, [
+                mb_convert_encoding($day['label'], 'SJIS-win', 'UTF-8'),
+                mb_convert_encoding($day['in_at'], 'SJIS-win', 'UTF-8'),
+                mb_convert_encoding($day['out_at'], 'SJIS-win', 'UTF-8'),
+                mb_convert_encoding($day['break_time'], 'SJIS-win', 'UTF-8'),
+                mb_convert_encoding($day['work_time'], 'SJIS-win', 'UTF-8'),
+            ]);
+        }
+
+        fclose($handle);
+    }, $fileName, [
+        'Content-Type' => 'text/csv; charset=Shift_JIS',
+    ]);
+    }
+
 
 }
