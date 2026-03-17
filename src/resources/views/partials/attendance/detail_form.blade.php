@@ -1,4 +1,4 @@
-<form class="attendance-list {{ $isPending ? 'is-pending' : '' }}"
+<form class="attendance-list {{ $isPending ? 'is-pending' : '' }} {{ $isApproved ? 'is-approved' : '' }}"
     action="{{ $isAdmin
         ? ($isPending
             ? route('admin.correction.approve', ['id' => $correctionRequest->id])
@@ -81,7 +81,7 @@
     @if($isPending && $isAdmin)
         <button class="detail-button" type="submit">承認</button>
     @elseif($isApproved)
-        <p class="detail-pending-text">* 承認済みです。</p>
+        <p class="detail-status-badge is-approved">承認済み</p>
     @elseif($isAdmin)
         <button class="detail-button" type="submit">修正</button>
     @elseif($isPending)

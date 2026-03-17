@@ -59,7 +59,7 @@
 }
 
 .table-row:last-child {
-    height: 156px;
+    height: 116px;
 }
 
 .detail-name-row,
@@ -107,31 +107,46 @@
     border: 1px solid gainsboro;
     border-radius: 4px;
     padding: 4px 10px;
-    font-size: 14px;
+    font-size: 16px;
     background-color: #fff;
 }
 
 .attendance-list.is-pending .detail-input,
-.attendance-list.is-pending .detail-textarea {
+.attendance-list.is-pending .detail-textarea,
+.attendance-list.is-approved .detail-input,
+.attendance-list.is-approved .detail-textarea {
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
     -webkit-appearance: none;
     appearance: none;
-    background-color: #f3f4f6;
-    color: #6b7280;
+}
+
+.attendance-list.is-pending .note-col .detail-field,
+.attendance-list.is-approved .note-col .detail-field {
+    display: flex;
+    justify-content: center;
+    padding-top: 0;
+}
+
+.attendance-list.is-pending .note-col .detail-textarea,
+.attendance-list.is-approved .note-col .detail-textarea {
+    min-height: auto;
+    padding-top: 0;
+    padding-bottom: 0;
+    resize: none;
 }
 
 .detail-textarea {
     display: block;
-    min-height: 100px;
+    min-height: 80px;
     resize: vertical;
 }
 
 .detail-input-time {
     width: 80px;
     text-align: center;
-    font-size: 18px;
+    font-size: 20px;
 }
 
 .detail-input-time::-webkit-calendar-picker-indicator {
@@ -180,6 +195,25 @@
     font-size: 14px;
     font-weight: 700;
     text-align: right;
+}
+
+.detail-status-badge {
+    display: block;
+    width: fit-content;
+    min-width: 0;
+    margin: 24px 0 0 auto;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.detail-status-badge.is-approved {
+    background-color: #6b7280;
+    color: #fff;
 }
 
 /* ========== ここから下はタブレット用 ==========*/
