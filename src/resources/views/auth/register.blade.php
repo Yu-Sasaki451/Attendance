@@ -2,7 +2,7 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('css/auth/register.css') }}">
-<link rel="stylesheet" href="{{ asset('css/validate.css') }}">
+<link rel="stylesheet" href="{{ asset('css/validation.css') }}">
 @endsection
 
 @section('content')

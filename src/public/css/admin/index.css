@@ -29,6 +29,7 @@
     background-color: white;
     border-radius: 10px;
     padding: 0 20px;
+    font-size: 20px;
 }
 
 .date-link {
@@ -52,6 +53,7 @@
 .attendance-table td {
     text-align: center;
     padding: 8px 20px;
+    font-size: 20px;
 }
 
 .table-title {
@@ -60,4 +62,23 @@
 
 .table-row {
     border-top: 1px solid gainsboro;
+}
+
+/* ========== ここから下はタブレット用 ==========*/
+@media screen and (min-width:768px) and (max-width:850px) {
+
+    .attendance-list {
+        width: 80%;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
+
+    .date-nav,
+    .attendance-table th,
+    .attendance-table td {
+        font-size: 16px;
+    }
+
 }

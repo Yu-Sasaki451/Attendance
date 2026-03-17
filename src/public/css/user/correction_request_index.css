@@ -86,3 +86,45 @@
     width: 80px;
 }
 
+/* ========== ここから下はタブレット用 ==========*/
+@media screen and (min-width:768px) and (max-width:850px) {
+
+    .request-list {
+        max-width: 700px;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
+
+    .request-list__table th,td {
+        font-size: 14px;
+        padding: 10px 8px;
+    }
+
+    .status-col {
+        width: 90px;
+    }
+
+    .name-col {
+        width: 100px;
+    }
+
+    .date-col {
+        width: 120px;
+    }
+
+    .reason-col {
+        width: 180px;
+    }
+
+    .request-col {
+        width: 120px;
+    }
+
+    .detail-col {
+        width: 90px;
+    }
+
+}
+

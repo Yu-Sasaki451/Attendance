@@ -1,0 +1,5 @@
+.form-error {
+    line-height: 1.5;
+    min-height: 1.5em;
+    color: red;
+}

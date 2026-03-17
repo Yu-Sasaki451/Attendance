@@ -5,6 +5,7 @@
     padding: 15px;
 }
 
+
 .header-inner--right {
     font-size: 20px;
 }
@@ -36,6 +37,28 @@
     background: none;
     border: none;
     color: white;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
+}
+
+/* ========== ここから下はタブレット用 ==========*/
+@media screen and (min-width:768px) and (max-width:850px){
+
+    .header-logo {
+        width: 80%;
+    }
+
+    .header-nav--admin {
+        width: 400px;
+    }
+
+    .header-nav--user {
+        width: 300px;
+    }
+
+    .header-inner--right,
+    .nav-button {
+        font-size: 18px;
+    }
+
 }

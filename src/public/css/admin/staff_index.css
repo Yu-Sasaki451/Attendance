@@ -32,7 +32,7 @@
 
 .staff-table tr {
     display: grid;
-    grid-template-columns: 180px 320px 100px;
+    grid-template-columns: 180px 320px 120px;
     justify-content: center;
     align-items: center;
 }
@@ -41,6 +41,7 @@
 .staff-table td {
     text-align: center;
     padding: 8px 16px;
+    font-size: 18px;
 }
 
 .table-title {
@@ -49,4 +50,21 @@
 
 .table-row {
     border-top: 1px solid gainsboro;
+}
+
+/* ========== ここから下はタブレット用 ==========*/
+@media screen and (min-width:768px) and (max-width:850px) {
+
+    .staff-list {
+        max-width: 700px;
+    }
+
+    .staff-table td {
+        font-size: 16px;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
+
 }
