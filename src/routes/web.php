@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\User\AttendanceController as UserAttendanceController;
 use App\Http\Controllers\User\CorrectionRequestController;
 use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
@@ -20,7 +21,7 @@ use App\Http\Controllers\Admin\CorrectionRequestController as AdminCorrectionReq
 */
 
 Route::middleware('guest')->group(function () {
-    Route::view('/admin/login', 'auth.admin_login')->name('admin.login');
+    Route::get('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login');
 });
 
 Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
