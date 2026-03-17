@@ -6,10 +6,18 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\BreakTime;
+use App\Services\AttendanceMonthlySummaryService;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
+    private AttendanceMonthlySummaryService $attendanceMonthlySummaryService;
+
+    public function __construct(AttendanceMonthlySummaryService $attendanceMonthlySummaryService)
+    {
+        $this->attendanceMonthlySummaryService = $attendanceMonthlySummaryService;
+    }
+
     public function index()
     {
         $now = now();
@@ -144,46 +152,7 @@ class AttendanceController extends Controller
             ? Carbon::createFromFormat('Y-m', $request->month)
             : now();
 
-        $attendances = Attendance::with('breakTimes')
-            ->where('user_id', auth()->id())
-            ->whereYear('date', $currentMonth->year)
-            ->whereMonth('date', $currentMonth->month)
-            ->get()
-            ->keyBy('date');
-
-        $days = collect(\Carbon\CarbonPeriod::create(
-            $currentMonth->copy()->startOfMonth(),
-            $currentMonth->copy()->endOfMonth()
-        ))->map(function ($day) use ($attendances) {
-            $attendance = $attendances->get($day->toDateString());
-
-            $breakMinutes = $attendance
-                ? $attendance->breakTimes->sum(function ($breakTime) {
-                    if (!$breakTime->in_at || !$breakTime->out_at) {
-                        return 0;
-                    }
-
-                    return Carbon::parse($breakTime->out_at)->diffInMinutes(
-                        Carbon::parse($breakTime->in_at)
-                    );
-                })
-                : 0;
-
-            $workMinutes = $attendance && $attendance->in_at && $attendance->out_at
-                ? Carbon::parse($attendance->out_at)->diffInMinutes(
-                    Carbon::parse($attendance->in_at)
-                ) - $breakMinutes
-                : null;
-
-            return [
-                'id' => $attendance ? $attendance->id : null,
-                'label' => $day->format('m/d') . '(' . ['日', '月', '火', '水', '木', '金', '土'][$day->dayOfWeek] . ')',
-                'in_at' => $attendance && $attendance->in_at ? Carbon::parse($attendance->in_at)->format('H:i') : '',
-                'out_at' => $attendance && $attendance->out_at ? Carbon::parse($attendance->out_at)->format('H:i') : '',
-                'break_time' => $attendance ? sprintf('%d:%02d', intdiv($breakMinutes, 60), $breakMinutes % 60) : '',
-                'work_time' => is_null($workMinutes) ? '' : sprintf('%d:%02d', intdiv($workMinutes, 60), $workMinutes % 60),
-            ];
-        });
+        $days = $this->attendanceMonthlySummaryService->build(auth()->id(), $currentMonth);
 
         return view('user.attendance_index', [
             'pageTitle' => '勤怠一覧',
