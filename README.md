@@ -38,7 +38,7 @@
 ### 1. リポジトリを取得
 
 ```bash
-git clone git@github.com:Yu-Sasaki451/Ateendance.git
+git clone git@github.com:Yu-Sasaki451/Attendance.git
 cd Attendance
 ```
 
