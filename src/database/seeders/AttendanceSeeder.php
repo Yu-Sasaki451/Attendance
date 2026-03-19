@@ -23,7 +23,7 @@ class AttendanceSeeder extends Seeder
 
         foreach ($users as $user) {
             for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
-                if ($date->isWeekend()) {
+                if ($date->isWeekend() || $date->isToday()) {
                     continue;
                 }
 
