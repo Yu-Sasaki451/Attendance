@@ -20,10 +20,12 @@ use App\Http\Controllers\Admin\CorrectionRequestController as AdminCorrectionReq
 |
 */
 
+//管理者のログイン画面
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login');
 });
 
+//ユーザー
 Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::get('/attendance',[UserAttendanceController::class,'index'])->name('user.attendance');
 
@@ -39,6 +41,7 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
 
 });
 
+//ログインが管理者かユーザーかで分岐
 Route::middleware('auth')->group(function () {
     Route::get('/stamp_correction_request/list', function (Request $request) {
         if (auth()->user()->role === 'admin') {
@@ -49,6 +52,7 @@ Route::middleware('auth')->group(function () {
     })->name('correction.index');
 });
 
+//管理者としてログイン
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/attendance/list', [AdminAttendanceController::class, 'index'])->name('admin.index');
     Route::get('admin/attendance/{id}', [AdminAttendanceController::class, 'detail'])->name('admin.attendance.detail');

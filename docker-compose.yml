@@ -15,6 +15,13 @@ services:
         volumes:
             - ./src:/var/www/
 
+    node:
+        image: node:20-alpine
+        working_dir: /var/www
+        volumes:
+            - ./src:/var/www/
+        tty: true
+
     mysql:
         image: mysql:8.0.32
         environment:

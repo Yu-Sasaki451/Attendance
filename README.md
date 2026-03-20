@@ -92,6 +92,14 @@ php artisan config:clear
 php artisan migrate --seed
 ```
 
+### 4. JavaScript テストの初期設定
+
+JavaScript テストを実行する場合は、`node` コンテナ内で依存パッケージをインストールしてください。
+
+```bash
+docker compose exec node npm install
+```
+
 ## 初期アカウント
 
 `php artisan migrate --seed` 実行後、以下のアカウントでログインできます。
@@ -136,6 +144,12 @@ docker compose exec mysql mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON attend
 
 ```bash
 php artisan test
+```
+
+JavaScript テストを実行する場合は、以下を実行してください。
+
+```bash
+docker compose exec node npm run test:js
 ```
 
 ## ER 図

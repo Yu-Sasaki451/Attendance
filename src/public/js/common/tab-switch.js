@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const roots = document.querySelectorAll('[data-tab-root]');
+function initializeTabSwitch(documentObject) {
+    const roots = documentObject.querySelectorAll('[data-tab-root]');
 
     roots.forEach(function (root) {
         const tabs = Array.from(root.querySelectorAll('[role="tab"]'));
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
-                const panel = document.getElementById(panelId);
+                const panel = documentObject.getElementById(panelId);
                 if (!panel) {
                     return;
                 }
@@ -33,4 +33,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initializeTabSwitch(document);
 });
+
+if (typeof module !== 'undefined') {
+    module.exports = {
+        initializeTabSwitch: initializeTabSwitch,
+    };
+}
