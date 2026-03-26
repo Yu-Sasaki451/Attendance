@@ -6,192 +6,317 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\BreakTime;
+use App\Models\CorrectionRequest;
 use App\Services\AttendanceDetailViewService;
 use App\Services\AttendanceMonthlySummaryService;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    private AttendanceDetailViewService $attendanceDetailViewService;
-    private AttendanceMonthlySummaryService $attendanceMonthlySummaryService;
 
-    public function __construct(
-        AttendanceMonthlySummaryService $attendanceMonthlySummaryService,
-        AttendanceDetailViewService $attendanceDetailViewService
-    )
-    {
-        $this->attendanceMonthlySummaryService = $attendanceMonthlySummaryService;
-        $this->attendanceDetailViewService = $attendanceDetailViewService;
-    }
+//打刻画面
+public function index(){
 
-    public function index()
-    {
-        $now = now();
+//ブレードで表示する日付
+$today = now()->format('Y年n月j日');
 
-        $attendance = Attendance::where('user_id', auth()->id())
-            ->whereDate('date', today())
-            ->first();
+//ブレードで表示する曜日
+$week = ['日','月','火','水','木','金','土',];
 
-        $status = '勤務外';
-        $buttons = [];
-        $message = null;
+//$weekのフォーマット変換
+$weekDay = $week[date('w')];
 
-        $currentBreak = null;
+//ブレードで表示する時間
+$currentTime = now()->format('h:i');
 
-        if ($attendance) {
-            $currentBreak = BreakTime::where('attendance_id', $attendance->id)
-                ->whereNotNull('in_at')
-                ->whereNull('out_at')
-                ->latest()
-                ->first();
-}
+//休憩のテーブルを一緒に取得、条件は日付とユーザーID
+$todayAttendance = Attendance::with('breakTimes')
+    ->where('date',now()->format('Y-m-d'))
+    ->where('user_id',auth()->id())
+    ->first();
 
-
-        if ($attendance && $attendance->out_at) {
-            $status = '退勤済';
-            $message = 'お疲れ様でした。';
-        } elseif ($attendance && $currentBreak) {
-            $status = '休憩中';
-            $buttons = [
-                ['label' => '休憩戻', 'route' => route('attendance.break-end'),'type' => 'light'],
-            ];
-        } elseif ($attendance && $attendance->in_at) {
-            $status = '出勤中';
-            $buttons = [
-                ['label' => '退勤', 'route' => route('attendance.clock-out'),'type' => 'dark'],
-                ['label' => '休憩入', 'route' => route('attendance.break-start'),'type' => 'light'],
-                ];
-        } else{
-            $buttons = [
-                ['label' => '出勤','route' => route('attendance.clock-in'),'type' => 'dark'],
-            ];
-        }
-
-        return view('user.attendance', [
-            'today' => $now->format('Y年n月j日'),
-            'weekday' => ['日', '月', '火', '水', '木', '金', '土'][$now->dayOfWeek],
-            'currentTime' => $now->format('H:i'),
-            'status' => $status,
-            'attendance' => $attendance,
-            'buttons' => $buttons,
-            'message' => $message,
-        ]);
-    }
-
-    private function getTodayAttendance(){
-    return Attendance::where('user_id', auth()->id())
-        ->whereDate('date', today())
-        ->first();
-    }
-
-    private function getOrCreateTodayAttendance(){
-    return Attendance::firstOrCreate(
+//勤怠レコードがなければ勤務外
+if (!$todayAttendance) {
+    $status = '勤務外';
+    $message = '';
+    $buttons = [
         [
-            'user_id' => auth()->id(),
-            'date' => today(),
+        'route' => '/attendance/clock-in',
+        'type' => 'dark',
+        'label' => '出勤',
         ]
-    );
+    ];
+} else {
+    //休憩レコードがあるか確認
+    $latestBreak = $todayAttendance->breakTimes->last();
+
+    //退勤カラムがあれば退勤済
+    if ($todayAttendance->out_at) {
+        $status = '退勤済';
+        $message = 'お疲れ様でした。';
+        $buttons = [];
+    }
+    //休憩レコードがある＆inがある＆outはないなら休憩中
+    elseif ($latestBreak !== null && $latestBreak->in_at !== null && $latestBreak->out_at === null) {
+        $status = '休憩中';
+        $message = '';
+        $buttons = [
+            [
+            'route' => '/attendance/break-end',
+            'type' => 'light',
+            'label' => '休憩戻',
+            ]
+        ];
+    }
+    //どれにも当てはまらないと出勤中
+    else {
+        $status = '出勤中';
+        $message = '';
+        $buttons = [
+            [
+            'route' => '/attendance/clock-out',
+            'type' => 'dark',
+            'label' => '退勤',
+            ],
+            [
+            'route' => '/attendance/break-start',
+            'type' => 'light',
+            'label' => '休憩入',
+            ]
+            ];
+    }}
+
+return view('user.attendance',compact('status','weekDay','today','currentTime','message','buttons'));}
+
+//出勤打刻、登録処理
+public function clockIn(){
+    
+    $attendance_data = $this->todayAttendance();
+
+    //今日の勤怠レコードがなかったら出勤保存
+    if(!$attendance_data){
+        $attendance_data = new Attendance;
+        $attendance_data->user_id = auth()->id();
+        $attendance_data->date = now()->toDateString();
+        $attendance_data->in_at = now();
+        $attendance_data->save();
     }
 
-    private function getCurrentBreak($attendanceId){
-    return BreakTime::where('attendance_id', $attendanceId)
-        ->whereNotNull('in_at')
-        ->whereNull('out_at')
-        ->latest()
-        ->first();
+    return redirect()->back();
+}
+
+//退勤打刻、更新処理
+public function clockOut(){
+    
+    $attendance_data = $this->todayAttendance();
+
+    //今日の勤怠レコードがあれば退勤保存
+    if($attendance_data){
+        $attendance_data->out_at = now();
+        $attendance_data->save();
     }
 
-    public function clockIn(){
-    $attendance = $this->getOrCreateTodayAttendance();
+    return redirect()->back();
+}
 
-    $attendance->update([
-        'in_at' => now(),
-    ]);
+//休憩入り打刻、登録処理
+public function breakStart(){
 
-    return redirect()->route('user.attendance');
+    $attendance_data = $this->todayAttendance();
+
+    //今日の勤怠レコードがあれば休憩入り保存
+    if($attendance_data){
+        $breakTime_data = new BreakTime;
+        $breakTime_data->attendance_id = $attendance_data->id;
+        $breakTime_data->in_at = now();
+        $breakTime_data->save();
     }
 
-    public function clockOut(){
-    $attendance = $this->getTodayAttendance();
+    return redirect()->back();
+}
 
-    if ($attendance) {
-        $attendance->update([
-            'out_at' => now(),
-        ]);
-    }
+//休憩終わり打刻、更新処理
+public function breakEnd(){
+    $attendance_data = $this->todayAttendance();
 
-    return redirect()->route('user.attendance');
-    }
+    //今日の勤怠レコードがあれば休憩次レコードを降順で取得
+    if($attendance_data){
+        $breakTime_data = BreakTime::where('attendance_id',$attendance_data->id)
+            ->orderBy('id','desc')
+            ->first();
 
-    public function breakStart(){
-    $attendance = $this->getTodayAttendance();
-
-    if ($attendance) {
-        BreakTime::create([
-            'attendance_id' => $attendance->id,
-            'in_at' => now(),
-        ]);
-    }
-
-    return redirect()->route('user.attendance');
-    }
-
-    public function breakEnd(){
-    $attendance = $this->getTodayAttendance();
-
-    if ($attendance) {
-        $breakTime = $this->getCurrentBreak($attendance->id);
-
-        if ($breakTime) {
-            $breakTime->update([
-                'out_at' => now(),
-            ]);
+        //休憩レコードがある＆休憩レコードのout_atが入ってないならout_atを保存
+        if($breakTime_data && $breakTime_data->out_at === null){
+            $breakTime_data->out_at = now();
+            $breakTime_data->save();
         }
     }
 
-    return redirect()->route('user.attendance');
-    }
-
-    public function list(Request $request)
-    {
-        $currentMonth = $request->filled('month')
-            ? Carbon::createFromFormat('Y-m', $request->month)
-            : now();
-
-        $days = $this->attendanceMonthlySummaryService->build(auth()->id(), $currentMonth);
-
-        return view('user.attendance_index', [
-            'pageTitle' => '勤怠一覧',
-            'days' => $days,
-            'currentMonthLabel' => $currentMonth->format('Y/m'),
-            'previousMonth' => $currentMonth->copy()->subMonth()->format('Y-m'),
-            'nextMonth' => $currentMonth->copy()->addMonth()->format('Y-m'),
-        ]);
-    }
-
-    public function detail($id)
-    {
-        $isAdmin = auth()->user()->role === 'admin';
-
-        $attendance = Attendance::with(['user','breakTimes','correctionRequests'])
-            ->where('user_id', auth()->id())
-            ->findOrFail($id);
-
-        $pendingRequest = $attendance->correctionRequests()
-            ->where('status', 'pending')
-            ->latest()
-            ->first();
-
-        $isApproved = $attendance->correctionRequests()
-            ->where('status', 'approved')
-            ->exists();
-
-        return view('user.attendance_detail', $this->attendanceDetailViewService->build(
-            $attendance,
-            $pendingRequest,
-            $isAdmin,
-            $isApproved,
-            '休憩時間'
-        ));
-    }
+    return redirect()->back();
 }
+
+//打刻で使う共通処理、ユーザーIDと今日の勤怠情報を1件取得
+private function todayAttendance(){
+        return Attendance::where('user_id',auth()->id())
+        ->where('date',now()->toDateString())
+        ->first();
+}
+
+public function list(Request $request){
+    //ページのタイトル
+    $pageTitle = '勤怠一覧';
+
+    //URLにmonthがあればそれを使う、なければnowを整形
+    $month = $request->month ?? now()->format('Y-m');
+
+    //$monthを加減できるようにするためCarbonに変換
+    $targetMonth = Carbon::parse($month);
+
+    //月を取得、整形
+    $currentMonthLabel = $targetMonth->format('Y/m');
+    $previousMonth = $targetMonth->copy()->subMonth()->format('Y-m');
+    $nextMonth = $targetMonth->copy()->addMonth()->format('Y-m');
+
+    //月の初日と最終日
+    $date = $targetMonth->copy()->startOfMonth();
+    $lastDate = $targetMonth->copy()->endOfMonth();
+
+    $week = ['日','月','火','水','木','金','土',];
+
+
+    //ひと月で指定してデータ取得
+    $attendance = Attendance::with('breakTimes')
+        ->where('user_id',auth()->id())
+        ->whereBetween('date',[$date,$lastDate])
+        ->get();
+
+    $days = [];
+
+
+    while ($date <= $lastDate){
+
+        //1日分の勤怠情報を取得
+        $attendanceOfDay = $attendance->firstWhere('date',$date->format('Y-m-d'));
+
+        //休憩時間n件を合計、inとoutの差分を分で計算
+        $breakMinutes = collect($attendanceOfDay?->breakTimes)->sum(function($breakTime){
+        return Carbon::parse($breakTime->in_at)
+        ->diffInMinutes(Carbon::parse($breakTime->out_at));
+        });
+
+        //H:mmの形で表示、Hは60で割る
+        $breakTimeLabel = sprintf('%d:%02d',floor($breakMinutes / 60),$breakMinutes % 60);
+
+        //勤怠がある＆退勤があるなら計算、違うならNULL
+        if($attendanceOfDay && $attendanceOfDay->out_at){
+        $workMinutes = Carbon::parse($attendanceOfDay->in_at)
+        ->diffInMinutes(Carbon::parse($attendanceOfDay->out_at));
+
+        //休憩時間を引く
+        $workMinutes -= $breakMinutes;
+
+        //H:mmで表示させる
+        $workTimeLabel = sprintf('%d:%02d', floor($workMinutes / 60), $workMinutes % 60);}
+
+        else{ $workTimeLabel = null; }
+
+
+        /*
+        $daysを配列で用意して必要項目を入れてブレードに渡す
+        in_at out_atは1日分の勤怠があるかどうかを確認してから、時間だけに整形する
+        休憩時間は0ならNUll、0でなければ時間だけに整形する
+        詳細へのURLはweb.phpのルート名を使用　　/attendance/detail/2みたいになる
+        */
+        $days[] =[
+            'dateLabel' => $date->format('m/d'),
+            'weekLabel' => $week[$date->dayOfWeek],
+            'in_at' => $attendanceOfDay?->in_at ? Carbon::parse($attendanceOfDay->in_at)->format('H:i') : null,
+            'out_at' => $attendanceOfDay?->out_at ? Carbon::parse($attendanceOfDay->out_at)->format('H:i') : null,
+            'break_time' => $breakMinutes === 0 ? null : $breakTimeLabel,
+            'work_time' => $workTimeLabel,
+            'id' => $attendanceOfDay ? $attendanceOfDay->id : null,
+        ];
+
+        $date->addDay();
+
+    }
+
+    return view('user.attendance_index',compact('pageTitle','currentMonthLabel','previousMonth','nextMonth','days'));
+
+}
+
+public function detail($id){
+
+    /*
+    attendances_tableから勤怠attendance_idを基に
+    user breakTimesの情報も併せて1件取得する
+    */
+    $attendance_data = Attendance::with(['user','breakTimes'])
+        ->where('id',$id)
+        ->first();
+
+    /*
+    　　correctionRequests_tableからattendance_idを基に
+    breakTimesの情報も併せて1件取得する
+    条件としてステータスがpendingのもの
+    */
+    $correctionRequest = CorrectionRequest::with('breakTimes')
+        ->where('attendance_id',$attendance_data->id)
+        ->where('status','pending')
+        ->first();
+
+    $userName = $attendance_data->user->name;
+
+    $dateYearLabel = Carbon::parse($attendance_data->date)->format('Y年');
+
+    $dateMonthDayLabel = Carbon::parse($attendance_data->date)->format('n月j日');
+
+    /*
+    修正申請($correctionRequest)があるかどうかで条件分岐
+    ある場合は詳細ページの出退勤、休憩、備考はcorrection_requests_tableの内容を表示させる
+    ない場合はattendances_tableの内容を表示させる
+    attendances_tableを表示させる場合は休憩時間の項目を+1個表示させる
+    */
+    if($correctionRequest){
+    $inAtLabel = Carbon::parse($correctionRequest->requested_in_at)->format('H:i');
+    $outAtLabel = Carbon::parse($correctionRequest->requested_out_at)->format('H:i');
+
+    foreach($correctionRequest->breakTimes as $index => $breakTime){
+    $breakRows[] =[
+        'label' => '休憩'.($index +1),
+        'in_at' => Carbon::parse($breakTime->requested_in_at)->format('H:i'),
+        'out_at' => Carbon::parse($breakTime->requested_out_at)->format('H:i'),
+    ];
+    }
+    $noteLabel = $correctionRequest->reason;
+
+    } else{
+    $inAtLabel = Carbon::parse($attendance_data->in_at)->format('H:i');
+    $outAtLabel = Carbon::parse($attendance_data->out_at)->format('H:i');
+
+    foreach($attendance_data->breakTimes as $index => $breakTime){
+    $breakRows[] =[
+        'label' => '休憩'.($index +1),
+        'in_at' => Carbon::parse($breakTime->in_at)->format('H:i'),
+        'out_at' => Carbon::parse($breakTime->out_at)->format('H:i'),
+    ];
+    }
+
+    $breakRows[] = [
+        'label'=> '休憩'.count($breakRows)+1,
+        'in_at' => '',
+        'out_at' => '',
+    ];
+
+    $noteLabel = $attendance_data->note;
+    }
+
+    $isPending = $correctionRequest !== null;
+
+    $isApproved = '';
+
+    return view ('user.attendance_detail',compact('attendance_data','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','breakRows','noteLabel','isPending','isApproved'));
+
+}
+}
+

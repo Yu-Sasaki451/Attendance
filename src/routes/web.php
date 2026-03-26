@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\User\AttendanceController as UserAttendanceController;
-use App\Http\Controllers\User\CorrectionRequestController;
+use App\Http\Controllers\User\CorrectionRequestController as UserCorrectionRequestController;
 use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
 use App\Http\Controllers\Admin\CorrectionRequestController as AdminCorrectionRequestController;
 
@@ -20,11 +20,6 @@ use App\Http\Controllers\Admin\CorrectionRequestController as AdminCorrectionReq
 |
 */
 
-//管理者のログイン画面
-Route::middleware('guest')->group(function () {
-    Route::get('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login');
-});
-
 //ユーザー
 Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::get('/attendance',[UserAttendanceController::class,'index'])->name('user.attendance');
@@ -37,19 +32,14 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::get('/attendance/list',[UserAttendanceController::class,'list'])->name('attendance.index');
 
     Route::get('/attendance/detail/{id}', [UserAttendanceController::class, 'detail'])->name('attendance.detail');
-    Route::post('/attendance/detail/{id}', [CorrectionRequestController::class, 'store'])->name('attendance.detail.update');
+    Route::post('/attendance/detail/{id}', [UserCorrectionRequestController::class, 'store'])->name('attendance.detail.update');
 
+    Route::get('/stamp_correction_request/list',[UserCorrectionRequestController::class,'correctionIndex'])->name('correction.index');
 });
 
-//ログインが管理者かユーザーかで分岐
-Route::middleware('auth')->group(function () {
-    Route::get('/stamp_correction_request/list', function (Request $request) {
-        if (auth()->user()->role === 'admin') {
-            return app(AdminCorrectionRequestController::class)->correctionIndex($request);
-        }
-
-        return app(CorrectionRequestController::class)->correctionIndex($request);
-    })->name('correction.index');
+//管理者のログイン画面
+Route::middleware('guest')->group(function () {
+    Route::get('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login');
 });
 
 //管理者としてログイン

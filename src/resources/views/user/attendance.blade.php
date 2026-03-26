@@ -12,7 +12,7 @@
 
 <div class="attendance">
     <p class="attendance-status">{{ $status }}</p>
-    <p class="info-today">{{ $today }}（{{ $weekday }}）</p>
+    <p class="info-today">{{ $today }}（{{ $weekDay }}）</p>
     <p class="info-now">{{ $currentTime }}</p>
 
     @if ($message)

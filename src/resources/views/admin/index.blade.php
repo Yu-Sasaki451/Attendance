@@ -10,7 +10,7 @@
 
 @section('content')
 <div class="attendance-list">
-    
+    <h1 class="page-title">{{ $pageTitle }}</h1>
 
     <div class="date-nav">
         <a class="date-link"
