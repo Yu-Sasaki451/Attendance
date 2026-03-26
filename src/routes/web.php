@@ -33,9 +33,20 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
 
     Route::get('/attendance/detail/{id}', [UserAttendanceController::class, 'detail'])->name('attendance.detail');
     Route::post('/attendance/detail/{id}', [UserCorrectionRequestController::class, 'store'])->name('attendance.detail.update');
-
-    Route::get('/stamp_correction_request/list',[UserCorrectionRequestController::class,'correctionIndex'])->name('correction.index');
 });
+
+/*
+ログインしてるか、メール認証してるかをチェック
+その後、URLにアクセスしたら無名関数を実行
+ログインしてるのがadminならadminのメソッドを実行し
+違うならユーザーのメソッドを実行
+*/
+Route::middleware(['auth','verified'])->get('/stamp_correction_request/list',function(){
+    if(auth()->user()->role === 'admin'){
+        return app(AdminCorrectionRequestController::class)->correctionIndex();
+    }
+    return app(UserCorrectionRequestController::class)->correctionIndex();
+})->name('correction.index');
 
 //管理者のログイン画面
 Route::middleware('guest')->group(function () {
@@ -49,8 +60,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('admin/attendance/{id}', [AdminAttendanceController::class, 'update'])->name('admin.attendance.update');
     Route::get('admin/staff/list', [AdminAttendanceController::class,'staff_list'])->name('staff.list');
     Route::get('admin/attendance/staff/{id}', [AdminAttendanceController::class, 'staff_attendance'])->name('admin.staff.attendance');
-    Route::get('/stamp_correction_request/approve/{id}', [AdminCorrectionRequestController::class, 'show'])->name('admin.correction.show');
-    Route::post('/stamp_correction_request/approve/{id}',[AdminCorrectionRequestController::class,'approve'])->name('admin.correction.approve');
+    Route::get('/stamp_correction_request/approve/{attendance_correct_request_id}',
+            [AdminCorrectionRequestController::class, 'showRequest'])->name('admin.correction.show');
+    Route::post('/stamp_correction_request/approve/{attendance_correct_request_id}',
+            [AdminCorrectionRequestController::class,'approveRequest'])->name('admin.correction.approve');
     Route::get('admin/attendance/staff/{id}/csv', [AdminAttendanceController::class, 'exportStaffAttendanceCsv'])
     ->name('admin.staff.attendance.csv');
 });
