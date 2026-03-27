@@ -124,7 +124,7 @@ class AttendanceBreakTest extends TestCase
         $response = $this->get('/attendance/list');
 
         $response->assertStatus(200);
-        $response->assertSee($clockInAt->format('m/d') . '(' . $this->jpWeekday($clockInAt->dayOfWeek) . ')');
+        $response->assertSee($clockInAt->format('m/d') .' ' . '(' . $this->jpWeekday($clockInAt->dayOfWeek) . ')');
         $response->assertSee('0:30');
 
         Carbon::setTestNow();

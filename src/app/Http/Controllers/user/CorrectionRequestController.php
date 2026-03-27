@@ -103,7 +103,7 @@ public function correctionIndex(){
         $pendingRequests[] = [
             'status_label' => '承認待ち',
             'user_name' => $pending_request->attendance->user->name,
-            'target_date' => $pending_request->attendance->date,
+            'target_date' => Carbon::parse($pending_request->attendance->date)->format('Y/m/d'),
             'reason' => $pending_request->reason,
             'applied_date' => Carbon::parse($pending_request->created_at)->format('Y/m/d'),
             'detail_url' => route('attendance.detail',['id'=> $pending_request->attendance->id]),
@@ -124,7 +124,7 @@ public function correctionIndex(){
         $approvedRequests[] = [
             'status_label' => '承認済み',
             'user_name' => $approved_request->attendance->user->name,
-            'target_date' => $approved_request->attendance->date,
+            'target_date' => Carbon::parse($approved_request->attendance->date)->format('Y/m/d'),
             'reason' => $approved_request->reason,
             'applied_date' => Carbon::parse($approved_request->created_at)->format('Y/m/d'),
             'detail_url' => route('attendance.detail',['id'=> $approved_request->attendance->id]),

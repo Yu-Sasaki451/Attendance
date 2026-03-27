@@ -60,7 +60,7 @@ class AttendanceClockInTest extends TestCase
         $response = $this->get('/attendance/list');
 
         $response->assertStatus(200);
-        $response->assertSee($fixedNow->format('m/d') . '(' . $this->jpWeekday($fixedNow->dayOfWeek) . ')');
+        $response->assertSee($fixedNow->format('m/d') .' ' . '(' . $this->jpWeekday($fixedNow->dayOfWeek) . ')');
         $response->assertSee($fixedNow->format('H:i'));
 
         Carbon::setTestNow();

@@ -23,8 +23,8 @@ $today = now()->format('Y年n月j日');
 //ブレードで表示する曜日
 $week = ['日','月','火','水','木','金','土',];
 
-//$weekのフォーマット変換
-$weekDay = $week[date('w')];
+//番号になってる曜日の配列を日本語にしてる
+$weekDay = $week[now()->dayOfWeek];
 
 //ブレードで表示する時間
 $currentTime = now()->format('h:i');
@@ -102,7 +102,7 @@ public function clockIn(){
         $attendance_data->save();
     }
 
-    return redirect()->back();
+    return redirect('/attendance');
 }
 
 //退勤打刻、更新処理
@@ -116,7 +116,7 @@ public function clockOut(){
         $attendance_data->save();
     }
 
-    return redirect()->back();
+    return redirect('/attendance');
 }
 
 //休憩入り打刻、登録処理
@@ -132,7 +132,7 @@ public function breakStart(){
         $breakTime_data->save();
     }
 
-    return redirect()->back();
+    return redirect('/attendance');
 }
 
 //休憩終わり打刻、更新処理
@@ -152,7 +152,7 @@ public function breakEnd(){
         }
     }
 
-    return redirect()->back();
+    return redirect('/attendance');
 }
 
 //打刻で使う共通処理、ユーザーIDと今日の勤怠情報を1件取得

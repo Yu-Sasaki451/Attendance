@@ -86,10 +86,10 @@ class StaffIndexTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('2026/02');
-        $response->assertSee('02/10(' . $this->jpWeekday(Carbon::create(2026, 2, 10)->dayOfWeek) . ')');
+        $response->assertSee('02/10 (' . $this->jpWeekday(Carbon::create(2026, 2, 10)->dayOfWeek) . ')');
         $response->assertSee('09:00');
         $response->assertSee('18:00');
-        $response->assertDontSee('03/10(' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');
+        $response->assertDontSee('03/10 (' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');
 
         Carbon::setTestNow();
     }
@@ -122,10 +122,10 @@ class StaffIndexTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('2026/04');
-        $response->assertSee('04/10(' . $this->jpWeekday(Carbon::create(2026, 4, 10)->dayOfWeek) . ')');
+        $response->assertSee('04/10 (' . $this->jpWeekday(Carbon::create(2026, 4, 10)->dayOfWeek) . ')');
         $response->assertSee('10:00');
         $response->assertSee('19:00');
-        $response->assertDontSee('03/10(' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');
+        $response->assertDontSee('03/10 (' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');
 
         Carbon::setTestNow();
     }

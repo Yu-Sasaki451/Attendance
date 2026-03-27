@@ -61,7 +61,7 @@ class AttendanceClockOutTest extends TestCase
         $response = $this->get('/attendance/list');
 
         $response->assertStatus(200);
-        $response->assertSee($clockInAt->format('m/d') . '(' . $this->jpWeekday($clockInAt->dayOfWeek) . ')');
+        $response->assertSee($clockInAt->format('m/d') . ' ' . '(' . $this->jpWeekday($clockInAt->dayOfWeek) . ')');
         $response->assertSee($clockInAt->format('H:i'));
         $response->assertSee($clockOutAt->format('H:i'));
 

@@ -33,7 +33,7 @@ class CorrectionRequestController extends Controller
             $pendingRequests[] = [
                 'status_label' => '承認待ち',
                 'user_name' => $correctionRequest_pending->attendance->user->name,
-                'target_date' => $correctionRequest_pending->attendance->date,
+                'target_date' => Carbon::parse($correctionRequest_pending->attendance->date)->format('Y/m/d'),
                 'reason' => $correctionRequest_pending->reason,
                 'applied_date' => Carbon::parse($correctionRequest_pending->created_at)->format('Y/m/d'),
                 'id' => $correctionRequest_pending->id,
@@ -46,7 +46,8 @@ class CorrectionRequestController extends Controller
             $approvedRequests[] = [
                 'status_label' => '承認済み',
                 'user_name' => $correctionRequest_approved->attendance->user->name,
-                'target_date' => $correctionRequest_approved->attendance->date,
+                'target_date' => Carbon::parse($correctionRequest_approved->attendance->date)
+                        ->format('Y/m/d'),
                 'reason' => $correctionRequest_approved->reason,
                 'applied_date' => Carbon::parse($correctionRequest_approved->created_at)->format('Y/m/d'),
                 'id' => $correctionRequest_approved->id,

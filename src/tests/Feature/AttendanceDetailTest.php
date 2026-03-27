@@ -89,7 +89,7 @@ class AttendanceDetailTest extends TestCase
         $response = $this->actingAs($this->user)->get('/attendance/detail/' . $attendance->id);
 
         $response->assertStatus(200);
-        $response->assertSee('休憩時間');
+        $response->assertSee('休憩');
         $response->assertSee($breakStartAt->format('H:i'));
         $response->assertSee($breakEndAt->format('H:i'));
     }

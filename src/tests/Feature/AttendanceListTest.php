@@ -46,8 +46,8 @@ class AttendanceListTest extends TestCase
         $response = $this->actingAs($this->user)->get('/attendance/list');
 
         $response->assertStatus(200);
-        $response->assertSee('03/01(' . $this->jpWeekday(Carbon::parse($firstAttendance->date)->dayOfWeek) . ')');
-        $response->assertSee('03/10(' . $this->jpWeekday(Carbon::parse($secondAttendance->date)->dayOfWeek) . ')');
+        $response->assertSee('03/01 (' . $this->jpWeekday(Carbon::parse($firstAttendance->date)->dayOfWeek) . ')');
+        $response->assertSee('03/10 (' . $this->jpWeekday(Carbon::parse($secondAttendance->date)->dayOfWeek) . ')');
         $response->assertSee('09:00');
         $response->assertSee('18:00');
         $response->assertSee('10:00');
@@ -99,10 +99,10 @@ class AttendanceListTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('2026/02');
-        $response->assertSee('02/10(' . $this->jpWeekday(Carbon::create(2026, 2, 10)->dayOfWeek) . ')');
+        $response->assertSee('02/10 (' . $this->jpWeekday(Carbon::create(2026, 2, 10)->dayOfWeek) . ')');
         $response->assertSee('09:00');
         $response->assertSee('18:00');
-        $response->assertDontSee('03/10(' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');
+        $response->assertDontSee('03/10 (' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');
 
         Carbon::setTestNow();
     }
@@ -134,10 +134,10 @@ class AttendanceListTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('2026/04');
-        $response->assertSee('04/05(' . $this->jpWeekday(Carbon::create(2026, 4, 5)->dayOfWeek) . ')');
+        $response->assertSee('04/05 (' . $this->jpWeekday(Carbon::create(2026, 4, 5)->dayOfWeek) . ')');
         $response->assertSee('09:00');
         $response->assertSee('18:00');
-        $response->assertDontSee('03/10(' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');
+        $response->assertDontSee('03/10 (' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');
 
         Carbon::setTestNow();
     }
