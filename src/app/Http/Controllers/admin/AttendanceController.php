@@ -290,7 +290,7 @@ public function update(AttendanceDetailRequest $request,$id){
     }
     });
 
-    return redirect('/admin/attendance/list');
+    return redirect()->route('admin.index');
 }
 
 

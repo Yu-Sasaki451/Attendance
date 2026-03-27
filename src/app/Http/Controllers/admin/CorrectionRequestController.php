@@ -102,10 +102,10 @@ class CorrectionRequestController extends Controller
         $request_data = CorrectionRequest::with('attendance','breakTimes')
                 ->where('id',$correction_request_id)
                 ->first();
-        
+
         $attendance = $request_data->attendance;
         $breakRows = $request_data->breakTimes;
-        
+
         DB::transaction(function() use($request_data,$attendance,$breakRows){
 
             $attendance->in_at = $request_data->requested_in_at;
@@ -129,7 +129,7 @@ class CorrectionRequestController extends Controller
         }
         );
 
-        return redirect('/stamp_correction_request/approve/'.$correction_request_id);
+        return redirect()->route('admin.correction.show',['id' => $correction_request_id]);
 
     }
 }

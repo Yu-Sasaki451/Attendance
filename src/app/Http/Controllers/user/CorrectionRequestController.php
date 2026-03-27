@@ -75,7 +75,7 @@ public function store(AttendanceDetailRequest $request,$id){
         $break_request_data->save();
     }
 
-    return redirect()->back();
+    return redirect()->route('attendance.detail',['id' => $id]);
 
 }
 

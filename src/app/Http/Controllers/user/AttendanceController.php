@@ -102,7 +102,7 @@ public function clockIn(){
         $attendance_data->save();
     }
 
-    return redirect('/attendance');
+    return redirect()->route('user.attendance');
 }
 
 //退勤打刻、更新処理
@@ -116,7 +116,7 @@ public function clockOut(){
         $attendance_data->save();
     }
 
-    return redirect('/attendance');
+    return redirect()->route('user.attendance');
 }
 
 //休憩入り打刻、登録処理
@@ -132,7 +132,7 @@ public function breakStart(){
         $breakTime_data->save();
     }
 
-    return redirect('/attendance');
+    return redirect()->route('user.attendance');
 }
 
 //休憩終わり打刻、更新処理
@@ -152,7 +152,7 @@ public function breakEnd(){
         }
     }
 
-    return redirect('/attendance');
+    return redirect()->route('user.attendance');
 }
 
 //打刻で使う共通処理、ユーザーIDと今日の勤怠情報を1件取得
@@ -315,9 +315,7 @@ public function detail($id){
 
     $isPending = $correctionRequest !== null;
 
-    $isApproved = '';
-
-    return view ('user.attendance_detail',compact('attendance_data','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','breakRows','noteLabel','isPending','isApproved'));
+    return view ('user.attendance_detail',compact('attendance_data','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','breakRows','noteLabel','isPending'));
 
 }
 }
