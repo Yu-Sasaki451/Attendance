@@ -15,7 +15,6 @@ class CorrectionRequestController extends Controller
 
 //修正申請テーブルに保存
 public function store(AttendanceDetailRequest $request,$id){
-
     //勤怠情報がユーザーのと一致するか確認するため
     $attendance_data = Attendance::where('id',$id)
         ->where('user_id',auth()->id())
@@ -54,7 +53,7 @@ public function store(AttendanceDetailRequest $request,$id){
 
     /*
     $break_rowsの配列を1件ずつ確認して
-    in_at out_atの両方があるものだけ4break_rowsに入れる
+    in_at out_atの両方があるものだけ$break_rowsに入れる
     */
     $break_rows = array_filter($break_rows, function ($break_row) {
     return filled($break_row['in_at']) && filled($break_row['out_at']);

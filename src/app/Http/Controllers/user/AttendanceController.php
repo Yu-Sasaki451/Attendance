@@ -271,6 +271,8 @@ public function detail($id){
 
     $dateMonthDayLabel = Carbon::parse($attendance_data->date)->format('n月j日');
 
+    $breakRows = [];
+
     /*
     修正申請($correctionRequest)があるかどうかで条件分岐
     ある場合は詳細ページの出退勤、休憩、備考はcorrection_requests_tableの内容を表示させる

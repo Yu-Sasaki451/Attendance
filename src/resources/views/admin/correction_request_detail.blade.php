@@ -10,10 +10,10 @@
 @endsection
 
 @section('content')
-<form class="attendance-list {{ $isPending ? 'is-pending' : '' }}"
-    action="/admin/attendance/{{$attendance->id}}"
+<form class="attendance-list"
+    action="/stamp_correction_request/approve/{{ $correction_request->id }}"
     method="POST">
-    @csrf
+    @csrf    
     <h1 class="page-title">勤怠詳細</h1>
 
     <table class="attendance-table">
@@ -40,9 +40,9 @@
             <td class="in-col">
                 <div class="detail-field">
                     <div class="detail-inline-row">
-                        <input class="detail-input" type="time" name="in_at" value="{{ $inAtLabel }}" {{ $isPending ? 'readonly' : '' }}>
+                        <input class="detail-input" type="time" name="in_at" value="{{ $inAtLabel }}">
                         <span class="detail-time-separator">〜</span>
-                        <input class="detail-input detail-input" type="time" name="out_at" value="{{ $outAtLabel }}" {{ $isPending ? 'readonly' : '' }}>
+                        <input class="detail-input detail-input" type="time" name="out_at" value="{{ $outAtLabel }}">
                     </div>
                     <div class="validate-error">
                         @error('attendance_time')
@@ -58,9 +58,9 @@
             <td class="break-col">
                 <div class="detail-field">
                     <div class="detail-inline-row">
-                        <input class="detail-input js-break-in" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}" {{ $isPending ? 'readonly' : '' }}>
+                        <input class="detail-input js-break-in" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}">
                         <span class="detail-time-separator">〜</span>
-                        <input class="detail-input js-break-out" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}" {{ $isPending ? 'readonly' : '' }}>
+                        <input class="detail-input js-break-out" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}">
                     </div>
                     <div class="validate-error">
                         @error("break_time.$loop->index")
@@ -75,7 +75,7 @@
             <th class="note-col">備考</th>
             <td class="note-col">
                 <div class="detail-field">
-                    <textarea class="detail-textarea" name="note" {{ $isPending ? 'readonly' : '' }}>{{ $noteLabel }}</textarea>
+                    <textarea class="detail-textarea" name="note">{{ $noteLabel }}</textarea>
                     <div class="validate-error">
                         @error('note')
                         {{ $message }}
@@ -85,6 +85,8 @@
             </td>
         </tr>
     </table>
+
+    
 
     @if($isPending)
         <button class="detail-button" type="submit">承認</button>

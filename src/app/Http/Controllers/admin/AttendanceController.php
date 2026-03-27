@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\User;
 use App\Models\CorrectionRequest;
+use App\Models\BreakTime;
 use App\Services\AttendanceDetailViewService;
 use App\Services\AttendanceMonthlySummaryService;
 use Carbon\Carbon;
@@ -17,6 +18,7 @@ use App\Http\Requests\AttendanceDetailRequest;
 class AttendanceController extends Controller
 {
 
+//1日のスタッフ全員の勤怠表示
 public function index(Request $request){
 
     //URLに日付があればそれを使う、なければnowを整形
@@ -76,6 +78,7 @@ public function index(Request $request){
     return view('admin.index',compact('pageTitle','currentDateLabel','previousDate','nextDate','rows'));
 }
 
+//勤怠詳細表示
 public function detail($id){
 
     $attendance = Attendance::with('user','breakTimes')
@@ -97,6 +100,8 @@ public function detail($id){
 
     $dateMonthDayLabel = Carbon::parse($attendance->date)->format('n月j日');
 
+    $breakRows = [];
+
     /*
     修正申請($correctionRequest)があるかどうかで条件分岐
     ある場合は詳細ページの出退勤、休憩、備考はcorrection_requests_tableの内容を表示させる
@@ -104,8 +109,8 @@ public function detail($id){
     attendances_tableを表示させる場合は休憩時間の項目を+1個表示させる
     */
     if($correctionRequest){
-        $inAtLabel = Carbon::parse($correctionRequest->in_at)->format('H:i');
-        $outAtLabel = Carbon::parse($correctionRequest->out_at)->format('H:i');
+        $inAtLabel = Carbon::parse($correctionRequest->requested_in_at)->format('H:i');
+        $outAtLabel = Carbon::parse($correctionRequest->requested_out_at)->format('H:i');
 
         foreach($correctionRequest->breakTimes as $index => $breakTime){
         $breakRows[] =[
@@ -141,12 +146,14 @@ public function detail($id){
     return view('admin.detail',compact('attendance','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','breakRows','noteLabel','isPending'));
 }
 
+//スタッフ一覧表示
 public function staff_list(){
     $staffs = User::where('role','user')->get();
 
     return view('admin.staff_index',compact('staffs'));
 }
 
+//スタッフの月別勤怠表示
 public function staff_attendance(Request $request,$id){
 
     //URLにmonthがあればそれを使う、なければnowを整形
@@ -226,6 +233,64 @@ public function staff_attendance(Request $request,$id){
     }
 
     return view('admin.staff_attendance',compact('user','pageTitle','currentMonthLabel','previousMonth','nextMonth','days'));
+}
+
+//管理者の手動修正
+public function update(AttendanceDetailRequest $request,$id){
+    $request_data = $request->all();
+    
+    $attendance = Attendance::with('user','breakTimes')
+            ->where('id',$id)
+            ->first();
+
+    //formから配列で値が来る、array_mapで使えるように変数定義
+    $break_in_times = $request['break_in_at'];
+    $break_out_times = $request['break_out_at'];
+
+    /*
+    in_at ['12:00','15:00']
+    out_at ['13:00','15:30']
+    のようになってるので、array_mapで
+    in_at 12:00　　out_at 13:00
+    で１セットになるようにする
+    */
+    $breakRows = array_map(function ($break_in_time,$break_out_time){
+        return [
+            'in_at' => $break_in_time,
+            'out_at' => $break_out_time
+        ];
+    }, $break_in_times,$break_out_times);
+
+    /*
+    $break_rowsの配列を1件ずつ確認して
+    in_at out_atの両方があるものだけ$break_rowsに入れる
+    */
+    $breakRows = array_filter($breakRows, function ($breakRow) {
+    return filled($breakRow['in_at']) && filled($breakRow['out_at']);
+    });
+
+    /*
+    トランザクションで全部成功した時だけDBの操作が完了するようにする
+    どれかが失敗したら全部落ちる
+    */
+    DB::transaction(function () use($attendance,$request_data,$breakRows){
+    $attendance->in_at = $attendance->date .' '. $request_data['in_at'];
+    $attendance->out_at = $attendance->date . ' '. $request_data['out_at'];
+    $attendance->note = $request_data['note'];
+    $attendance->save();
+
+    $attendance->breakTimes()->delete();
+
+    foreach($breakRows as $index => $breakRow){
+    $breakTime = new BreakTime;
+    $breakTime->attendance_id = $attendance->id;
+    $breakTime->in_at = $attendance->date .' '. $breakRow['in_at'];
+    $breakTime->out_at = $attendance->date .' '. $breakRow['out_at'];
+    $breakTime->save();
+    }
+    });
+
+    return redirect('/admin/attendance/list');
 }
 
 
