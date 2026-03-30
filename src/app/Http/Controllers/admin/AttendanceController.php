@@ -74,13 +74,20 @@ public function index(
 //勤怠詳細表示
 public function detail($id,DetailService $DetailService){
 
+    //URLのIDを元に勤怠＆ユーザー情報、紐づく休憩情報を1件取得
     $attendance = Attendance::with('user','breakTimes')
         ->where('id',$id)
         ->first();
 
-    $detail_data = $DetailService->detailData($attendance);
+    //勤怠IDを元に申請情報と紐づく休憩情報を1件取得
+    $correctionRequest = CorrectionRequest::with('breakTimes')
+    ->where('id',$attendance->id)
+    ->first();
 
-    
+    //2つの変数をサービスに渡して、処理結果を$detail_dataに格納する
+    $detail_data = $DetailService->detailData($attendance,$correctionRequest);
+
+    //Serviceのreturnで渡された値たち
     $correctionRequest = $detail_data['correctionRequest'];
     $userName = $detail_data['userName'];
     $dateYearLabel = $detail_data['dateYearLabel'];
@@ -96,8 +103,11 @@ public function detail($id,DetailService $DetailService){
 
 //スタッフ一覧表示
 public function staff_list(){
+    
+    //roleがユーザーの情報を全て取得
     $users = User::where('role','user')->get();
 
+    //foreachで回す前に空配列を用意
     $staffs = [];
 
     foreach($users as $user){
@@ -124,29 +134,33 @@ public function staff_attendance(
     //URLにmonthがあればそれを使う、なければnowを整形
     $month = $request->month ?? now()->format('Y-m');
 
+    //URLのIDを基にユーザー情報を取得
     $user = User::where('id',$id)->first();
 
+    //$monthをサービスに渡して、処理結果を$monthDataに格納する
     $monthData = $dateService->getMonth($month);
 
+    //サービスから渡されてきたものたち
     $date = $monthData['date'];
     $lastDate = $monthData['lastDate'];
     $currentMonthLabel = $monthData['currentMonthLabel'];
     $previousMonth = $monthData['previousMonth'];
     $nextMonth = $monthData['nextMonth'];
 
+    //月を切り替えるURL作成
     $previousMonthUrl = route('admin.staff.attendance',['id'=> $user->id,'month'=> $previousMonth]);
     $nextMonthUrl = route('admin.staff.attendance',['id'=> $user->id,'month'=> $nextMonth]);
 
-    $week = ['日','月','火','水','木','金','土',];
-
     $pageTitle = $user->name .'さんの勤怠';
 
+    //$userのIDを使って該当するユーザーの勤怠情報を全て取得
     $attendance = Attendance::with('breakTimes')
                 ->where('user_id',$user->id)
                 ->whereBetween('date',[$date,$lastDate])
                 ->get();
 
 
+    $week = ['日','月','火','水','木','金','土',];
     $days = [];
 
     while ($date <= $lastDate){
@@ -154,20 +168,21 @@ public function staff_attendance(
         //1日分の勤怠情報を取得
         $attendanceOfDay = $attendance->firstWhere('date',$date->format('Y-m-d'));
 
+        //1日分の勤怠情報をサービスに渡して、処理結果を$attendance_dataに格納する
         $attendance_data = $attendanceCalculationService->attendance_data($attendanceOfDay);
 
+        //サービスから渡された処理結果たち
         $breakMinutes = $attendance_data['breakMinutes'];
         $breakTimeLabel = $attendance_data['breakTimeLabel'];
         $workMinutes = $attendance_data['workMinutes'];
         $workTimeLabel = $attendance_data['workTimeLabel'];
 
+        //1日分の勤怠情報がある場合はURLを作成する
         $detailUrl = $attendanceOfDay ? route('admin.attendance.detail',['id' => $attendanceOfDay->id]) : null;
 
         /*
-        $daysを配列で用意して必要項目を入れてブレードに渡す
-        in_at out_atは1日分の勤怠があるかどうかを確認してから、時間だけに整形する
-        休憩時間は0ならNUll、0でなければ時間だけに整形する
-        詳細へのURLはweb.phpのルート名を使用　　/attendance/detail/2みたいになる
+        勤怠の該当カラムに値があるかどうかを確認してから、整形する
+        休憩時間は0ならNUll
         */
         $days[] =[
             'dateLabel' => $date->format('m/d'),
@@ -192,19 +207,20 @@ public function update(
     $id,
     BreakCalculationService $breakCalculationService){
 
+    //$requestの中身を全部取得
     $request_data = $request->all();
 
+    //URLのIDを基に勤怠＆ユーザー＆休憩情報を1件取得
     $attendance = Attendance::with('user','breakTimes')
             ->where('id',$id)
             ->first();
 
     $breakRows = $breakCalculationService->break_array($request_data);
 
-    /*
-    トランザクションで全部成功した時だけDBの操作が完了するようにする
-    どれかが失敗したら全部落ちる
-    */
+
+    //トランザクション->どれか一つでも処理が失敗したら元に戻る
     DB::transaction(function () use($attendance,$request_data,$breakRows){
+
     $attendance->in_at = $attendance->date .' '. $request_data['in_at'];
     $attendance->out_at = $attendance->date . ' '. $request_data['out_at'];
     $attendance->note = $request_data['note'];

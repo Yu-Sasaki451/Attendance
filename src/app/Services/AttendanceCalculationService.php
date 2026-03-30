@@ -25,13 +25,15 @@ public function attendance_data($attendanceOfDay){
 
         //出勤＆退勤があるなら計算
         if($attendanceOfDay && $attendanceOfDay->out_at){
+
+        //Carbonで計算できるようにして、差を算出
         $workMinutes = Carbon::parse($attendanceOfDay->in_at)
         ->diffInMinutes(Carbon::parse($attendanceOfDay->out_at));
 
         //休憩時間を引く
         $workMinutes -= $breakMinutes;
 
-        //H:mmで表示させる
+        //H:mmで表示させる　floorで小数点以下を排除 %で割り切れない数字だけ残す
         $workTimeLabel = sprintf('%d:%02d', floor($workMinutes / 60), $workMinutes % 60);}
 
 

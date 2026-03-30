@@ -8,6 +8,7 @@ use App\Models\Attendance;
 use App\Models\CorrectionRequest;
 use App\Models\CorrectionRequestBreakTime;
 use App\Services\BreakCalculationService;
+use App\Services\CorrectionRequestService;
 use Carbon\Carbon;
 use App\Http\Requests\AttendanceDetailRequest;
 
@@ -59,56 +60,26 @@ public function store(
 }
 
 //申請一覧を表示
-public function correctionIndex(){
-
-    //空配列を用意
-    $pendingRequests = [];
-    $approvedRequests = [];
+public function correctionIndex(CorrectionRequestService $correctionRequestService){
 
     //デフォルトで表示するタブをpendingにする
     $activeTab = 'pending';
 
-    /*
-    attendanceのリレーションからwhere句にuser_idを使用
-    ステータスがpendingのデータだけを取得
-    */
-    $pending_requests = CorrectionRequest::with('attendance.user')
+    $correctionRequests_pending = CorrectionRequest::with('attendance.user')
         ->whereRelation('attendance','user_id',auth()->id())
         ->where('status','pending')
         ->get();
 
-    //1件ずつ配列で入れてビューに渡す
-    foreach($pending_requests as $pending_request){
-        $pendingRequests[] = [
-            'status_label' => '承認待ち',
-            'user_name' => $pending_request->attendance->user->name,
-            'target_date' => Carbon::parse($pending_request->attendance->date)->format('Y/m/d'),
-            'reason' => $pending_request->reason,
-            'applied_date' => Carbon::parse($pending_request->created_at)->format('Y/m/d'),
-            'detail_url' => route('attendance.detail',['id'=> $pending_request->attendance->id]),
-    ];
-    }
-
-    /*
-    attendanceのリレーションからwhere句にuser_idを使用
-    ステータスがapprovedのデータだけを取得
-    */
-    $approved_requests = CorrectionRequest::with('attendance.user')
+    $correctionRequests_approved = CorrectionRequest::with('attendance.user')
         ->whereRelation('attendance','user_id',auth()->id())
         ->where('status','approved')
         ->get();
 
+    $correctionRequests = $correctionRequestService
+                ->correctionRequest($correctionRequests_pending,$correctionRequests_approved);
 
-    foreach($approved_requests as $approved_request){
-        $approvedRequests[] = [
-            'status_label' => '承認済み',
-            'user_name' => $approved_request->attendance->user->name,
-            'target_date' => Carbon::parse($approved_request->attendance->date)->format('Y/m/d'),
-            'reason' => $approved_request->reason,
-            'applied_date' => Carbon::parse($approved_request->created_at)->format('Y/m/d'),
-            'detail_url' => route('attendance.detail',['id'=> $approved_request->attendance->id]),
-    ];
-    }
+    $pendingRequests = $correctionRequests['pendingRequests'];
+    $approvedRequests = $correctionRequests['approvedRequests'];
 
     return view('user.correction_request_index',compact('pendingRequests','approvedRequests','activeTab'));
 }

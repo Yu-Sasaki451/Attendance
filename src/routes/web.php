@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Services\CorrectionRequestService;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\User\AttendanceController as UserAttendanceController;
 use App\Http\Controllers\User\CorrectionRequestController as UserCorrectionRequestController;
@@ -38,14 +39,15 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
 /*
 ログインしてるか、メール認証してるかをチェック
 その後、URLにアクセスしたら無名関数を実行
-ログインしてるのがadminならadminのメソッドを実行し
-違うならユーザーのメソッドを実行
+ログインしてるのがadminならadminのメソッドを実行し違うならユーザーのメソッドを実行
+コントローラのメソッドでサービスを使用してるので、functionにサービスを渡して、returnにも変数を渡す
 */
-Route::middleware(['auth','verified'])->get('/stamp_correction_request/list',function(){
+Route::middleware(['auth','verified'])
+    ->get('/stamp_correction_request/list',function(CorrectionRequestService $correctionRequestService){
     if(auth()->user()->role === 'admin'){
-        return app(AdminCorrectionRequestController::class)->correctionIndex();
+        return app(AdminCorrectionRequestController::class)->correctionIndex($correctionRequestService);
     }
-    return app(UserCorrectionRequestController::class)->correctionIndex();
+    return app(UserCorrectionRequestController::class)->correctionIndex($correctionRequestService);
 })->name('correction.index');
 
 //管理者のログイン画面

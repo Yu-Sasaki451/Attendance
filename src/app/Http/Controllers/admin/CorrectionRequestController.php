@@ -7,6 +7,7 @@ use App\Models\CorrectionRequest;
 use App\Models\User;
 use App\Models\BreakTime;
 use App\Services\DetailService;
+use App\Services\CorrectionRequestService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 class CorrectionRequestController extends Controller
 {
 
-    public function correctionIndex(){
+    public function correctionIndex(CorrectionRequestService $correctionRequestService){
 
         //attendanceのリレーション関係にあるuserを一緒に取得
         $correctionRequests_pending = CorrectionRequest::with('attendance.user')
@@ -24,38 +25,11 @@ class CorrectionRequestController extends Controller
                 ->where('status','approved')
                 ->get();
 
-        //空配列を用意
-        $pendingRequests = [];
-        $approvedRequests = [];
+        $correctionRequests = $correctionRequestService
+                ->correctionRequest($correctionRequests_pending,$correctionRequests_approved);
 
-        //承認待ちの申請情報を1件ずつ配列に格納
-        foreach($correctionRequests_pending as $correctionRequest_pending){
-
-            $pendingRequests[] = [
-                'status_label' => '承認待ち',
-                'user_name' => $correctionRequest_pending->attendance->user->name,
-                'target_date' => Carbon::parse($correctionRequest_pending->attendance->date)->format('Y/m/d'),
-                'reason' => $correctionRequest_pending->reason,
-                'applied_date' => Carbon::parse($correctionRequest_pending->created_at)->format('Y/m/d'),
-                'detailUrl'
-                => route('admin.correction.show',['correction_request_id' => $correctionRequest_pending->id]),
-            ];
-        }
-
-        //承認済みの申請情報を1件ずつ配列へ格納
-        foreach($correctionRequests_approved as $correctionRequest_approved){
-
-            $approvedRequests[] = [
-                'status_label' => '承認済み',
-                'user_name' => $correctionRequest_approved->attendance->user->name,
-                'target_date' => Carbon::parse($correctionRequest_approved->attendance->date)
-                        ->format('Y/m/d'),
-                'reason' => $correctionRequest_approved->reason,
-                'applied_date' => Carbon::parse($correctionRequest_approved->created_at)->format('Y/m/d'),
-                'detailUrl'
-                    => route('admin.correction.show',['correction_request_id' => $correctionRequest_approved->id]),
-            ];
-        }
+        $pendingRequests = $correctionRequests['pendingRequests'];
+        $approvedRequests = $correctionRequests['approvedRequests'];
 
         //デフォルト表示をpendingに指定
         $activeTab = 'pending';

@@ -11,9 +11,7 @@ class DetailService{
 
 
     $userName = $attendance->user->name;
-
     $dateYearLabel = Carbon::parse($attendance->date)->format('Y年');
-
     $dateMonthDayLabel = Carbon::parse($attendance->date)->format('n月j日');
 
     $breakRows = [];
