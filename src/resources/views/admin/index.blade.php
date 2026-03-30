@@ -13,11 +13,10 @@
     <h1 class="page-title">{{ $pageTitle }}</h1>
 
     <div class="date-nav">
-        <a class="date-link"
-        href="/admin/attendance/list?date={{ $previousDate }}">← 前日</a>
+        <a class="date-link" href="{{ $previousDateUrl }}">← 前日</a>
         <p class="date-current">{{ $currentDateLabel }}</p>
         <a class="date-link"
-        href="/admin/attendance/list?date={{ $nextDate }}">翌日 →</a>
+        href="{{ $nextDateUrl }}">翌日 →</a>
     </div>
 
     <table class="attendance-table">
@@ -37,8 +36,8 @@
             <td>{{ $row['break_time'] }}</td>
             <td>{{ $row['work_time'] }}</td>
             <td>
-                @if($row['id'])
-                <a class="link-detail" href="/admin/attendance/{{ $row['id'] }}">詳細</a>
+                @if($row['detailUrl'])
+                <a class="link-detail" href="{{ $row['detailUrl'] }}">詳細</a>
                 @endif
             </td>
         </tr>

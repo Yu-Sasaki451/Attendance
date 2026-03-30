@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\CorrectionRequest;
 use App\Models\CorrectionRequestBreakTime;
+use App\Models\BreakCalculationService;
 use Carbon\Carbon;
 use App\Http\Requests\AttendanceDetailRequest;
 
@@ -14,7 +15,10 @@ class CorrectionRequestController extends Controller
 {
 
 //修正申請テーブルに保存
-public function store(AttendanceDetailRequest $request,$id){
+public function store(
+    AttendanceDetailRequest $request,
+    $id,
+    BreakCalculationService $breakCalculationService){
     //勤怠情報がユーザーのと一致するか確認するため
     $attendance_data = Attendance::where('id',$id)
         ->where('user_id',auth()->id())
@@ -33,32 +37,7 @@ public function store(AttendanceDetailRequest $request,$id){
     $request_data->reason = $request->input('note');
     $request_data->save();
 
-    //formから配列で値が来る、array_mapで使えるように変数定義
-    $break_in_times = $request->input('break_in_at');
-    $break_out_times = $request->input('break_out_at');
-
-    /*
-    in_at ['12:00','15:00']
-    out_at ['13:00','15:30']
-    のようになってるので、array_mapで
-    in_at 12:00　　out_at 13:00
-    で１セットになるようにする
-    */
-    $break_rows = array_map(function ($break_in_time, $break_out_time){
-        return [
-            'in_at' => $break_in_time,
-            'out_at' => $break_out_time,
-        ];
-    }, $break_in_times,$break_out_times);
-
-    /*
-    $break_rowsの配列を1件ずつ確認して
-    in_at out_atの両方があるものだけ$break_rowsに入れる
-    */
-    $break_rows = array_filter($break_rows, function ($break_row) {
-    return filled($break_row['in_at']) && filled($break_row['out_at']);
-    });
-
+    $breakRows = $breakCalculationService->break_array($request);
 
     /*
     休憩時間を保存する処理

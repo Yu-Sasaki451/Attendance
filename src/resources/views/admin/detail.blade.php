@@ -11,7 +11,7 @@
 
 @section('content')
 <form class="attendance-list {{ $isPending ? 'is-pending' : '' }}"
-    action="/admin/attendance/{{$attendance->id}}"
+    action="{{ route('admin.attendance.update',['id' => $attendance->id]) }}"
     method="POST">
     @csrf
     <h1 class="page-title">勤怠詳細</h1>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CorrectionRequest;
 use App\Models\User;
 use App\Models\BreakTime;
+use App\Services\AttendanceDetailService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -36,7 +37,8 @@ class CorrectionRequestController extends Controller
                 'target_date' => Carbon::parse($correctionRequest_pending->attendance->date)->format('Y/m/d'),
                 'reason' => $correctionRequest_pending->reason,
                 'applied_date' => Carbon::parse($correctionRequest_pending->created_at)->format('Y/m/d'),
-                'id' => $correctionRequest_pending->id,
+                'detailUrl'
+                => route('admin.correction.show',['correction_request_id' => $correctionRequest_pending->id]),
             ];
         }
 
@@ -50,7 +52,8 @@ class CorrectionRequestController extends Controller
                         ->format('Y/m/d'),
                 'reason' => $correctionRequest_approved->reason,
                 'applied_date' => Carbon::parse($correctionRequest_approved->created_at)->format('Y/m/d'),
-                'id' => $correctionRequest_approved->id,
+                'detailUrl'
+                    => route('admin.correction.show',['correction_request_id' => $correctionRequest_approved->id]),
             ];
         }
 
@@ -129,7 +132,7 @@ class CorrectionRequestController extends Controller
         }
         );
 
-        return redirect()->route('admin.correction.show',['id' => $correction_request_id]);
+        return redirect()->route('admin.correction.show',['correction_request_id' => $correction_request_id]);
 
     }
 }

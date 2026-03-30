@@ -22,7 +22,7 @@
         <tr class="table-row">
             <td>{{ $staff['name'] }}</td>
             <td>{{$staff['email'] }}</td>
-            <td><a class="link-detail" href="/admin/attendance/staff/{{$staff['id']}}">詳細</a></td>
+            <td><a class="link-detail" href="{{$staff['detailUrl']}}">詳細</a></td>
         </tr>
         @endforeach
     </table>

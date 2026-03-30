@@ -13,9 +13,9 @@
     <h1 class="page-title">{{ $pageTitle }}</h1>
 
     <div class="month-nav">
-        <a class="month-link" href="/attendance/list?month={{ $previousMonth }}">← 前月</a>
+        <a class="month-link" href="{{ $previousMonthUrl }}">← 前月</a>
         <p class="month-current">{{ $currentMonthLabel }}</p>
-        <a class="month-link" href="/attendance/list?month={{ $nextMonth }}">翌月 →</a>
+        <a class="month-link" href="{{ $nextMonthUrl }}">翌月 →</a>
     </div>
 
     <table class="attendance-table">
@@ -35,8 +35,8 @@
             <td>{{ $day['break_time'] }}</td>
             <td>{{ $day['work_time'] }}</td>
             <td>
-                @if($day['id'])
-                <a class="link-detail" href="{{route('attendance.detail',['id' => $day->id]) }}">詳細</a>
+                @if($day['detailUrl'])
+                <a class="link-detail" href="{{ $day['detailUrl'] }}">詳細</a>
                 @else
                 <span class="link-detail">詳細</span>
                 @endif

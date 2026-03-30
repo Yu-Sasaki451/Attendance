@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\CorrectionRequest;
+use Carbon\Carbon;
+
+class AttendanceDetailService{
+
+    public function detailData($detail_data){
+
+    /*correctionRequests_tableからattendance_idを基に
+    breakTimesの情報も併せて1件取得する
+    条件としてステータスがpendingのもの
+    */
+    $correctionRequest = CorrectionRequest::with('breakTimes')
+        ->where('attendance_id',$detail_data->id)
+        ->where('status','pending')
+        ->first();
+
+    $userName = $detail_data->user->name;
+
+    $dateYearLabel = Carbon::parse($detail_data->date)->format('Y年');
+
+    $dateMonthDayLabel = Carbon::parse($detail_data->date)->format('n月j日');
+
+    $breakRows = [];
+
+    /*修正申請($correctionRequest)がある場合
+    詳細ページの出退勤、休憩、備考はcorrection_requests_tableの内容を表示させる*/
+    if($correctionRequest){
+        $inAtLabel = Carbon::parse($correctionRequest->requested_in_at)->format('H:i');
+        $outAtLabel = Carbon::parse($correctionRequest->requested_out_at)->format('H:i');
+
+        foreach($correctionRequest->breakTimes as $index => $breakTime){
+        $breakRows[] =[
+            'label' => '休憩'.($index +1),
+            'in_at' => Carbon::parse($breakTime->requested_in_at)->format('H:i'),
+            'out_at' => Carbon::parse($breakTime->requested_out_at)->format('H:i'),
+    ];
+    }
+        $noteLabel = $correctionRequest->reason;
+    }
+        /*修正申請($correctionRequest)がない場合は
+        詳細ページの出退勤、休憩、備考attendances_tableの内容を表示させる
+        さらに休憩時間の項目を+1個表示させる*/
+    else{
+        $inAtLabel = Carbon::parse($detail_data->in_at)->format('H:i');
+        $outAtLabel = Carbon::parse($detail_data->out_at)->format('H:i');
+
+        //休憩を1件ずつ配列にする、インデックスの番号が 0 からなので+1する
+        foreach($detail_data->breakTimes as $index => $breakTime){
+        $breakRows[] =[
+            'label' => '休憩'.($index +1),
+            'in_at' => Carbon::parse($breakTime->in_at)->format('H:i'),
+            'out_at' => Carbon::parse($breakTime->out_at)->format('H:i'),
+    ];
+    }
+        //ここで休憩項目を+1する
+        $breakRows[] = [
+            'label'=> '休憩'.count($breakRows)+1,
+            'in_at' => '',
+            'out_at' => '',
+        ];
+
+        $noteLabel = $detail_data->note;
+    }
+
+    //$correctionRequestがnullじゃない
+    $isPending = $correctionRequest !== null;
+
+    return [
+        'correctionRequest' =>$correctionRequest,
+        'userName' => $userName,
+        'dateYearLabel' => $dateYearLabel,
+        'dateMonthDayLabel' => $dateMonthDayLabel,
+        'inAtLabel' => $inAtLabel,
+        'outAtLabel' => $outAtLabel,
+        'breakRows' => $breakRows,
+        'noteLabel' => $noteLabel,
+        'isPending' => $isPending,
+    ];
+    }
+}
