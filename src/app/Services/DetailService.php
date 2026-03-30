@@ -5,24 +5,16 @@ namespace App\Services;
 use App\Models\CorrectionRequest;
 use Carbon\Carbon;
 
-class AttendanceDetailService{
+class DetailService{
 
-    public function detailData($detail_data){
+    public function detailData($attendance,$correctionRequest = null){
 
-    /*correctionRequests_tableからattendance_idを基に
-    breakTimesの情報も併せて1件取得する
-    条件としてステータスがpendingのもの
-    */
-    $correctionRequest = CorrectionRequest::with('breakTimes')
-        ->where('attendance_id',$detail_data->id)
-        ->where('status','pending')
-        ->first();
 
-    $userName = $detail_data->user->name;
+    $userName = $attendance->user->name;
 
-    $dateYearLabel = Carbon::parse($detail_data->date)->format('Y年');
+    $dateYearLabel = Carbon::parse($attendance->date)->format('Y年');
 
-    $dateMonthDayLabel = Carbon::parse($detail_data->date)->format('n月j日');
+    $dateMonthDayLabel = Carbon::parse($attendance->date)->format('n月j日');
 
     $breakRows = [];
 
@@ -45,11 +37,11 @@ class AttendanceDetailService{
         詳細ページの出退勤、休憩、備考attendances_tableの内容を表示させる
         さらに休憩時間の項目を+1個表示させる*/
     else{
-        $inAtLabel = Carbon::parse($detail_data->in_at)->format('H:i');
-        $outAtLabel = Carbon::parse($detail_data->out_at)->format('H:i');
+        $inAtLabel = Carbon::parse($attendance->in_at)->format('H:i');
+        $outAtLabel = Carbon::parse($attendance->out_at)->format('H:i');
 
         //休憩を1件ずつ配列にする、インデックスの番号が 0 からなので+1する
-        foreach($detail_data->breakTimes as $index => $breakTime){
+        foreach($attendance->breakTimes as $index => $breakTime){
         $breakRows[] =[
             'label' => '休憩'.($index +1),
             'in_at' => Carbon::parse($breakTime->in_at)->format('H:i'),
@@ -63,7 +55,7 @@ class AttendanceDetailService{
             'out_at' => '',
         ];
 
-        $noteLabel = $detail_data->note;
+        $noteLabel = $attendance->note;
     }
 
     //$correctionRequestがnullじゃない

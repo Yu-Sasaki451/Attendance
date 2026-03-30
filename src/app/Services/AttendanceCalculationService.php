@@ -23,7 +23,7 @@ public function attendance_data($attendanceOfDay){
         $workMinutes = null;
         $workTimeLabel = null;
 
-        //勤怠がある＆退勤があるなら計算
+        //出勤＆退勤があるなら計算
         if($attendanceOfDay && $attendanceOfDay->out_at){
         $workMinutes = Carbon::parse($attendanceOfDay->in_at)
         ->diffInMinutes(Carbon::parse($attendanceOfDay->out_at));

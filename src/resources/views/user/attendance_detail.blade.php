@@ -10,7 +10,7 @@
 
 @section('content')
 <form class="attendance-list {{ $isPending ? 'is-pending' : '' }}"
-    action="{{ route('attendance.detail.update',['id' => $attendance_data->id]) }}"
+    action="{{ route('attendance.detail.update',['id' => $attendance->id]) }}"
     method="POST">
     @csrf
     <h1 class="page-title">勤怠詳細</h1>

@@ -11,7 +11,7 @@
 
 @section('content')
 <form class="attendance-list"
-    action="{{ route('admin.correction.approve',['correction_request_id' => $correction_request->id]) }}"
+    action="{{ route('admin.correction.approve',['correction_request_id' => $correctionRequest->id]) }}"
     method="POST">
     @csrf    
     <h1 class="page-title">勤怠詳細</h1>

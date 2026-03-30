@@ -9,7 +9,7 @@ use App\Models\BreakTime;
 use App\Models\CorrectionRequest;
 use App\Services\DateService;
 use App\Services\AttendanceCalculationService;
-use App\Services\AttendanceDetailService;
+use App\Services\DetailService;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
@@ -174,9 +174,10 @@ public function list(
     //URLにmonthがあればそれを使う、なければnowを整形
     $month = $request->month ?? now()->format('Y-m');
 
-    //Serviceから処理結果を受け取る
+    //Serviceに$monthを渡して、処理結果を$monthDataに格納する
     $monthData = $dateService->getMonth($month);
 
+    //Serviceのreturnで渡された値たち
     $currentMonthLabel = $monthData['currentMonthLabel'];
     $previousMonth = $monthData['previousMonth'];
     $nextMonth = $monthData['nextMonth'];
@@ -207,12 +208,13 @@ public function list(
         //$attendanceOfDayをサービスに渡して、結果を$attendance_dataに格納する
         $attendance_data = $attendanceCalculationService->attendance_data($attendanceOfDay);
 
-        //Serviceから処理結果を受け取る
+        //Serviceのreturnで渡された値たち
         $breakMinutes = $attendance_data['breakMinutes'];
         $breakTimeLabel = $attendance_data['breakTimeLabel'];
         $workMinutes = $attendance_data['workMinutes'];
         $workTimeLabel = $attendance_data['workTimeLabel'];
 
+        //$attendanceOfDayがあればURL作成
         $detailUrl = $attendanceOfDay ? route('attendance.detail',['id' => $attendanceOfDay->id]) : null;
 
         /*
@@ -240,17 +242,19 @@ public function list(
 
 }
 
-public function detail($id,AttendanceDetailService $attendanceDetailService){
+public function detail($id,DetailService $DetailService){
 
-    /*
-    attendances_tableから勤怠attendance_idを基に
-    user breakTimesの情報も併せて1件取得する
-    */
-    $attendance_data = Attendance::with(['user','breakTimes'])
+    $attendance = Attendance::with(['user','breakTimes'])
         ->where('id',$id)
         ->first();
 
-    $detail_data = $attendanceDetailService->detailData($attendance_data);
+    $correctionRequest = CorrectionRequest::with('breakTimes')
+        ->where('attendance_id',$attendance->id)
+        ->where('status','pending')
+        ->first();
+
+    //勤怠情報＆ユーザー情報と申請情報をサービスに渡して、処理結果を$detail_dataに格納する
+    $detail_data = $DetailService->detailData($attendance,$correctionRequest);
 
     $correctionRequest = $detail_data['correctionRequest'];
     $userName = $detail_data['userName'];
@@ -262,7 +266,7 @@ public function detail($id,AttendanceDetailService $attendanceDetailService){
     $noteLabel = $detail_data['noteLabel'];
     $isPending = $detail_data['isPending'];
 
-    return view ('user.attendance_detail',compact('attendance_data','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','breakRows','noteLabel','isPending'));
+    return view ('user.attendance_detail',compact('attendance','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','breakRows','noteLabel','isPending'));
 
 }
 }

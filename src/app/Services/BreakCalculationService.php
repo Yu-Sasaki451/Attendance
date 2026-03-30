@@ -6,9 +6,9 @@ class BreakCalculationService{
 
     public function break_array($request_data){
 
-    //formからの値まとめてやってくるので、array_mapで使えるように変数定義
-    $break_in_times = $request->input('break_in_at');
-    $break_out_times = $request->input('break_out_at');
+    //formから送られてくる値は配列、そのままだと取り出せないからarray_mapで使えるように変数定義
+    $break_in_times = $request_data['break_in_at'];
+    $break_out_times = $request_data['break_out_at'];
 
     /*
     in_at ['12:00','15:00']
@@ -17,7 +17,7 @@ class BreakCalculationService{
     in_at 12:00　　out_at 13:00
     で１セットになるようにする
     */
-    $break_rows = array_map(function ($break_in_time, $break_out_time){
+    $breakRows = array_map(function ($break_in_time, $break_out_time){
         return [
             'in_at' => $break_in_time,
             'out_at' => $break_out_time,
@@ -28,12 +28,10 @@ class BreakCalculationService{
     $break_rowsの配列を1件ずつ確認して
     in_at out_atの両方があるものだけ$break_rowsに入れる
     */
-    $break_rows = array_filter($break_rows, function ($break_row) {
-    return filled($break_row['in_at']) && filled($break_row['out_at']);
+    $breakRows = array_filter($breakRows, function ($breakRow) {
+    return filled($breakRow['in_at']) && filled($breakRow['out_at']);
     });
 
-    return [
-        'breakRows' => $breakRows,
-    ];
+    return $breakRows;
     }
 }

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CorrectionRequest;
 use App\Models\User;
 use App\Models\BreakTime;
-use App\Services\AttendanceDetailService;
+use App\Services\DetailService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -64,62 +64,58 @@ class CorrectionRequestController extends Controller
     }
 
     //申請詳細を表示
-    public function showRequest($correction_request_id){
+    public function showRequest($correction_request_id,DetailService $detailService){
 
-        $correction_request = CorrectionRequest::with('attendance.user','breakTimes')
+        $correctionRequest = CorrectionRequest::with('attendance.user','breakTimes')
                 ->where('id',$correction_request_id)
                 ->first();
 
-        $userName = $correction_request->attendance->user->name;
+        $detail_data = $detailService->detailData($correctionRequest->attendance,$correctionRequest);
 
-        $dateYearLabel = Carbon::parse($correction_request->attendance->date)->format('Y年');
-        $dateMonthDayLabel = Carbon::parse($correction_request->attendance->date)->format('n月j日');
+        $userName = $detail_data['userName'];
 
-        $inAtLabel = Carbon::parse($correction_request->requested_in_at)->format('H:i');
-        $outAtLabel = Carbon::parse($correction_request->requested_out_at)->format('H:i');
-        $noteLabel = $correction_request->reason;
+        $dateYearLabel = $detail_data['dateYearLabel'];
+        $dateMonthDayLabel = $detail_data['dateMonthDayLabel'];
 
-        $isPending = $correction_request->status === 'pending';
+        $inAtLabel = $detail_data['inAtLabel'];
+        $outAtLabel = $detail_data['outAtLabel'];
+        $noteLabel = $detail_data['noteLabel'];
 
-        $breakRows = [];
+        $isPending = $detail_data['isPending'];
 
-        foreach($correction_request->breakTimes as $index => $breakTime){
-            $breakRows[] = [
-                'label' => '休憩'.$index+1,
-                'in_at' => Carbon::parse($breakTime->requested_in_at)->format('H:i'),
-                'out_at' => Carbon::parse($breakTime->requested_out_at)->format('H:i'),
-            ];
-        }
+        $breakRows = $detail_data['breakRows'];
 
-        return view('admin.correction_request_detail',compact('correction_request','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','noteLabel','breakRows','isPending'));
+        return view('admin.correction_request_detail',compact('correctionRequest','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','noteLabel','breakRows','isPending'));
     }
 
-    // 申請テーブルの情報取得 *
-    //　申請休憩の情報取得 *
-    //　元の勤怠を申請情報で上書き保存
-    //　元の休憩情報を削除
-    //　申請の休憩で保存
-    //ステータスを承認済みにする
+
     public function approveRequest($correction_request_id){
 
+        // 申請テーブルから勤怠と休憩情報を併せて取得
         $request_data = CorrectionRequest::with('attendance','breakTimes')
                 ->where('id',$correction_request_id)
                 ->first();
 
+        //$request_dataで一緒に取得したattendanceを使いやすいように変数定義
         $attendance = $request_data->attendance;
+
+        //$request_dataで一緒に取得したbreakTimesを使いやすいように変数定義
         $breakRows = $request_data->breakTimes;
 
+        //トランザクション->一連の処理が一部でも失敗すると元に戻る
         DB::transaction(function() use($request_data,$attendance,$breakRows){
 
+            //元の勤怠を申請内容で上書き保存する処理
             $attendance->in_at = $request_data->requested_in_at;
             $attendance->out_at = $request_data->requested_out_at;
             $attendance->note = $request_data->reason;
             $attendance->save();
 
+            //元の勤怠に紐づく休憩を削除する処理
             $attendance->breakTimes()->delete();
 
+            //foreachで休憩の配列を回す→保存する処理
             foreach($breakRows as $index => $breakRow ){
-
                 $breakTime = new BreakTime;
                 $breakTime->attendance_id = $attendance->id;
                 $breakTime->in_at = $breakRow->requested_in_at;
@@ -127,6 +123,7 @@ class CorrectionRequestController extends Controller
                 $breakTime->save();
             }
 
+            //申請テーブルのステータスを承認済みにして保存する処理
             $request_data->status = 'approved';
             $request_data->save();
         }

@@ -9,7 +9,8 @@ use App\Models\CorrectionRequest;
 use App\Models\BreakTime;
 use App\Services\DateService;
 use App\Services\AttendanceCalculationService;
-use App\Services\AttendanceDetailService;
+use App\Services\DetailService;
+use App\Services\BreakCalculationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -71,13 +72,13 @@ public function index(
 }
 
 //勤怠詳細表示
-public function detail($id,AttendanceDetailService $attendanceDetailService){
+public function detail($id,DetailService $DetailService){
 
     $attendance = Attendance::with('user','breakTimes')
         ->where('id',$id)
         ->first();
 
-    $detail_data = $attendanceDetailService->detailData($attendance);
+    $detail_data = $DetailService->detailData($attendance);
 
     
     $correctionRequest = $detail_data['correctionRequest'];
@@ -126,7 +127,7 @@ public function staff_attendance(
     $user = User::where('id',$id)->first();
 
     $monthData = $dateService->getMonth($month);
-    
+
     $date = $monthData['date'];
     $lastDate = $monthData['lastDate'];
     $currentMonthLabel = $monthData['currentMonthLabel'];
@@ -186,38 +187,18 @@ public function staff_attendance(
 }
 
 //管理者の手動修正
-public function update(AttendanceDetailRequest $request,$id){
+public function update(
+    AttendanceDetailRequest $request,
+    $id,
+    BreakCalculationService $breakCalculationService){
+
     $request_data = $request->all();
-    
+
     $attendance = Attendance::with('user','breakTimes')
             ->where('id',$id)
             ->first();
 
-    //formから配列で値が来る、array_mapで使えるように変数定義
-    $break_in_times = $request['break_in_at'];
-    $break_out_times = $request['break_out_at'];
-
-    /*
-    in_at ['12:00','15:00']
-    out_at ['13:00','15:30']
-    のようになってるので、array_mapで
-    in_at 12:00　　out_at 13:00
-    で１セットになるようにする
-    */
-    $breakRows = array_map(function ($break_in_time,$break_out_time){
-        return [
-            'in_at' => $break_in_time,
-            'out_at' => $break_out_time
-        ];
-    }, $break_in_times,$break_out_times);
-
-    /*
-    $break_rowsの配列を1件ずつ確認して
-    in_at out_atの両方があるものだけ$break_rowsに入れる
-    */
-    $breakRows = array_filter($breakRows, function ($breakRow) {
-    return filled($breakRow['in_at']) && filled($breakRow['out_at']);
-    });
+    $breakRows = $breakCalculationService->break_array($request_data);
 
     /*
     トランザクションで全部成功した時だけDBの操作が完了するようにする

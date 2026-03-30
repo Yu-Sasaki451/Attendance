@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\CorrectionRequest;
 use App\Models\CorrectionRequestBreakTime;
-use App\Models\BreakCalculationService;
+use App\Services\BreakCalculationService;
 use Carbon\Carbon;
 use App\Http\Requests\AttendanceDetailRequest;
 
@@ -45,12 +45,12 @@ public function store(
     番号は0から始まるので、+1して１からだよと修正する
     日付＆時間の形に整形する
     */
-    foreach($break_rows as $index => $break_row){
+    foreach($breakRows as $index => $breakRow){
         $break_request_data = new CorrectionRequestBreakTime;
         $break_request_data->correction_request_id = $request_data->id;
         $break_request_data->break_index = $index + 1;
-        $break_request_data->requested_in_at = $attendance_data->date.' '.$break_row['in_at'];
-        $break_request_data->requested_out_at = $attendance_data->date.' '.$break_row['out_at'];
+        $break_request_data->requested_in_at = $attendance_data->date.' '.$breakRow['in_at'];
+        $break_request_data->requested_out_at = $attendance_data->date.' '.$breakRow['out_at'];
         $break_request_data->save();
     }
 
