@@ -60,7 +60,7 @@
                     <td class="reason-col">{{ $pendingRequest['reason'] }}</td>
                     <td class="request-col">{{ $pendingRequest['applied_date'] }}</td>
                     <td class="detail-col"><a class="link-detail"
-                        href="{{ $pendingRequest['detailUrl'] }}">詳細</a></td>
+                        href="{{ $pendingRequest['detail_url'] }}">詳細</a></td>
                 </tr>
                 @endforeach
             </table>
@@ -92,7 +92,7 @@
                     <td class="reason-col">{{ $approvedRequest['reason'] }}</td>
                     <td class="request-col">{{ $approvedRequest['applied_date'] }}</td>
                     <td class="detail-col"><a class="link-detail"
-                        href="{{ $approvedRequest['detailUrl'] }}">詳細</a></td>
+                        href="{{ $approvedRequest['detail_url'] }}">詳細</a></td>
                 </tr>
                 @endforeach
             </table>

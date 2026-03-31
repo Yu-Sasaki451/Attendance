@@ -56,8 +56,8 @@ class DetailService{
         $noteLabel = $attendance->note;
     }
 
-    //$correctionRequestがnullじゃない
-    $isPending = $correctionRequest !== null;
+    //$correctionRequestがnullじゃない&ステータスがpending
+    $isPending = $correctionRequest && $correctionRequest->status == 'pending';
 
     return [
         'correctionRequest' =>$correctionRequest,

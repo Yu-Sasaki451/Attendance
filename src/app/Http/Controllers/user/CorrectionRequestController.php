@@ -30,13 +30,13 @@ public function store(
     formからは時間しか値がないので、日付＆時間に整形が必要
     ステータスは未承認でpending
     */
-    $request_data = new CorrectionRequest;
-    $request_data->attendance_id = $attendance_data->id;
-    $request_data->requested_in_at = $attendance_data->date.' '. $request->input('in_at');
-    $request_data->requested_out_at = $attendance_data->date.' '. $request->input('out_at');
-    $request_data->status = 'pending';
-    $request_data->reason = $request->input('note');
-    $request_data->save();
+    $request_data = CorrectionRequest::create([
+        'attendance_id' => $attendance_data->id,
+        'requested_in_at' => $attendance_data->date.' '. $request->input('in_at'),
+        'requested_out_at' => $attendance_data->date.' '. $request->input('out_at'),
+        'status' => 'pending',
+        'reason' => $request->input('note'),
+    ]);
 
     $breakRows = $breakCalculationService->break_array($request);
 
@@ -47,12 +47,12 @@ public function store(
     日付＆時間の形に整形する
     */
     foreach($breakRows as $index => $breakRow){
-        $break_request_data = new CorrectionRequestBreakTime;
-        $break_request_data->correction_request_id = $request_data->id;
-        $break_request_data->break_index = $index + 1;
-        $break_request_data->requested_in_at = $attendance_data->date.' '.$breakRow['in_at'];
-        $break_request_data->requested_out_at = $attendance_data->date.' '.$breakRow['out_at'];
-        $break_request_data->save();
+        $break_request_data = CorrectionRequestBreakTime::create([
+            'correction_request_id' =>$request_data->id,
+            'break_index' => $index + 1,
+            'requested_in_at' => $attendance_data->date.' '.$breakRow['in_at'],
+            'requested_out_at' => $attendance_data->date.' '.$breakRow['out_at'],
+        ]);
     }
 
     return redirect()->route('attendance.detail',['id' => $id]);
@@ -62,8 +62,6 @@ public function store(
 //申請一覧を表示
 public function correctionIndex(CorrectionRequestService $correctionRequestService){
 
-    //デフォルトで表示するタブをpendingにする
-    $activeTab = 'pending';
 
     $correctionRequests_pending = CorrectionRequest::with('attendance.user')
         ->whereRelation('attendance','user_id',auth()->id())
@@ -80,6 +78,9 @@ public function correctionIndex(CorrectionRequestService $correctionRequestServi
 
     $pendingRequests = $correctionRequests['pendingRequests'];
     $approvedRequests = $correctionRequests['approvedRequests'];
+
+    //デフォルトで表示するタブをpendingにする
+    $activeTab = 'pending';
 
     return view('user.correction_request_index',compact('pendingRequests','approvedRequests','activeTab'));
 }

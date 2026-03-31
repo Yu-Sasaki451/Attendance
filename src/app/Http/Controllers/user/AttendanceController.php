@@ -250,7 +250,7 @@ public function detail($id,DetailService $DetailService){
 
     $correctionRequest = CorrectionRequest::with('breakTimes')
         ->where('attendance_id',$attendance->id)
-        ->where('status','pending')
+        ->latest('created_at')
         ->first();
 
     //勤怠情報＆ユーザー情報と申請情報をサービスに渡して、処理結果を$detail_dataに格納する

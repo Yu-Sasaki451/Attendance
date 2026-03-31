@@ -79,9 +79,10 @@ public function detail($id,DetailService $DetailService){
         ->where('id',$id)
         ->first();
 
-    //勤怠IDを元に申請情報と紐づく休憩情報を1件取得
+    //勤怠IDを元に申請情報と紐づく休憩情報(最新)を1件取得
     $correctionRequest = CorrectionRequest::with('breakTimes')
-    ->where('id',$attendance->id)
+    ->where('attendance_id',$attendance->id)
+    ->latest('created_at')
     ->first();
 
     //2つの変数をサービスに渡して、処理結果を$detail_dataに格納する
@@ -165,8 +166,8 @@ public function staff_attendance(
 
     while ($date <= $lastDate){
 
-        //1日分の勤怠情報を取得
-        $attendanceOfDay = $attendance->firstWhere('date',$date->format('Y-m-d'));
+        //1日分の勤怠情報(最新)を取得
+        $attendanceOfDay = $attendance->sortByDesc('updated_at')->firstWhere('date',$date->format('Y-m-d'));
 
         //1日分の勤怠情報をサービスに渡して、処理結果を$attendance_dataに格納する
         $attendance_data = $attendanceCalculationService->attendance_data($attendanceOfDay);

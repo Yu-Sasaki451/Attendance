@@ -47,16 +47,12 @@ class CorrectionRequestController extends Controller
         $detail_data = $detailService->detailData($correctionRequest->attendance,$correctionRequest);
 
         $userName = $detail_data['userName'];
-
         $dateYearLabel = $detail_data['dateYearLabel'];
         $dateMonthDayLabel = $detail_data['dateMonthDayLabel'];
-
         $inAtLabel = $detail_data['inAtLabel'];
         $outAtLabel = $detail_data['outAtLabel'];
         $noteLabel = $detail_data['noteLabel'];
-
         $isPending = $detail_data['isPending'];
-
         $breakRows = $detail_data['breakRows'];
 
         return view('admin.correction_request_detail',compact('correctionRequest','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','noteLabel','breakRows','isPending'));
