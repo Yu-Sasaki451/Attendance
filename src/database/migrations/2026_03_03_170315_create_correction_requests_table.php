@@ -20,7 +20,6 @@ class CreateCorrectionRequestsTable extends Migration
             $table->datetime('requested_out_at')->nullable();
             $table->text('reason');
             $table->string('status');
-            $table->text('note')->nullable();
             $table->timestamps();
         });
     }

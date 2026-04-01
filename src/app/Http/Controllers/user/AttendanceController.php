@@ -91,16 +91,16 @@ return view('user.attendance',compact('status','weekDay','today','currentTime','
 
 //出勤打刻、登録処理
 public function clockIn(){
-    
+
     $attendance_data = $this->todayAttendance();
 
     //今日の勤怠レコードがなかったら出勤保存
     if(!$attendance_data){
-        $attendance_data = new Attendance;
-        $attendance_data->user_id = auth()->id();
-        $attendance_data->date = now()->toDateString();
-        $attendance_data->in_at = now();
-        $attendance_data->save();
+        Attendance::create ([
+            'user_id' => auth()->user()->id,
+            'date' => now()->toDateString(),
+            'in_at' => now(),
+        ]);
     }
 
     return redirect()->route('user.attendance');
@@ -113,8 +113,7 @@ public function clockOut(){
 
     //今日の勤怠レコードがあれば退勤保存
     if($attendance_data){
-        $attendance_data->out_at = now();
-        $attendance_data->save();
+        $attendance_data->update(['out_at' => now()]);
     }
 
     return redirect()->route('user.attendance');
@@ -127,10 +126,10 @@ public function breakStart(){
 
     //今日の勤怠レコードがあれば休憩入り保存
     if($attendance_data){
-        $breakTime_data = new BreakTime;
-        $breakTime_data->attendance_id = $attendance_data->id;
-        $breakTime_data->in_at = now();
-        $breakTime_data->save();
+        BreakTime::create([
+            'attendance_id' => $attendance_data->id,
+            'in_at' => now(),
+        ]);
     }
 
     return redirect()->route('user.attendance');
@@ -140,7 +139,7 @@ public function breakStart(){
 public function breakEnd(){
     $attendance_data = $this->todayAttendance();
 
-    //今日の勤怠レコードがあれば休憩次レコードを降順で取得
+    //今日の勤怠レコードがあれば休憩時間レコードを降順で取得
     if($attendance_data){
         $breakTime_data = BreakTime::where('attendance_id',$attendance_data->id)
             ->orderBy('id','desc')
@@ -148,8 +147,7 @@ public function breakEnd(){
 
         //休憩レコードがある＆休憩レコードのout_atが入ってないならout_atを保存
         if($breakTime_data && $breakTime_data->out_at === null){
-            $breakTime_data->out_at = now();
-            $breakTime_data->save();
+            $breakTime_data->update(['out_at' => now()]);
         }
     }
 
@@ -187,7 +185,7 @@ public function list(
 
     $previousMonthUrl =  route('attendance.index',['month' => $previousMonth]);
     $nextMonthUrl = route('attendance.index',['month' => $nextMonth]);
-    
+
     $week = ['日','月','火','水','木','金','土',];
 
 
@@ -215,7 +213,7 @@ public function list(
         $workTimeLabel = $attendance_data['workTimeLabel'];
 
         //$attendanceOfDayがあればURL作成
-        $detailUrl = $attendanceOfDay ? route('attendance.detail',['id' => $attendanceOfDay->id]) : null;
+        $detail_url = $attendanceOfDay ? route('attendance.detail',['attendance_id' => $attendanceOfDay->id]) : null;
 
         /*
         $daysを配列で用意して必要項目を入れてブレードに渡す
@@ -230,7 +228,7 @@ public function list(
             'out_at' => $attendanceOfDay?->out_at ? Carbon::parse($attendanceOfDay->out_at)->format('H:i') : null,
             'break_time' => $breakMinutes === 0 ? null : $breakTimeLabel,
             'work_time' => $workTimeLabel,
-            'detailUrl' => $detailUrl,
+            'detail_url' => $detail_url,
         ];
 
         //計算結果に+1日して次の日にする
@@ -242,10 +240,10 @@ public function list(
 
 }
 
-public function detail($id,DetailService $DetailService){
+public function detail($attendance_id,DetailService $DetailService){
 
     $attendance = Attendance::with(['user','breakTimes'])
-        ->where('id',$id)
+        ->where('id',$attendance_id)
         ->first();
 
     $correctionRequest = CorrectionRequest::with('breakTimes')

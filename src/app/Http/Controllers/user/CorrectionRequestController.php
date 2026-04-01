@@ -18,10 +18,10 @@ class CorrectionRequestController extends Controller
 //修正申請テーブルに保存
 public function store(
     AttendanceDetailRequest $request,
-    $id,
+    $attendance_id,
     BreakCalculationService $breakCalculationService){
     //勤怠情報がユーザーのと一致するか確認するため
-    $attendance_data = Attendance::where('id',$id)
+    $attendance_data = Attendance::where('id',$attendance_id)
         ->where('user_id',auth()->id())
         ->firstOrFail();
 
@@ -55,7 +55,7 @@ public function store(
         ]);
     }
 
-    return redirect()->route('attendance.detail',['id' => $id]);
+    return redirect()->route('attendance.detail',['attendance_id' => $attendance_id]);
 
 }
 

@@ -56,7 +56,7 @@ public function index(
         $breakTimeLabel = $attendance_data['breakTimeLabel'];
         $workMinutes = $attendance_data['workMinutes'];
         $workTimeLabel = $attendance_data['workTimeLabel'];
-        $detailUrl = route('admin.attendance.detail',['id' => $attendance->id]);
+        $detail_url = route('admin.attendance.detail',['attendance_id' => $attendance->id]);
 
     $rows [] =[
         'name' => $attendance->user->name,
@@ -64,11 +64,11 @@ public function index(
         'out_at' => $attendance->out_at ? Carbon::parse($attendance->out_at)->format('H:i') :null,
         'break_time' => $breakMinutes === 0 ? null : $breakTimeLabel,
         'work_time' => $workTimeLabel,
-        'detailUrl' => $detailUrl,
+        'detail_url' => $detail_url,
     ];
     }
 
-    return view('admin.index',compact('pageTitle','currentDateLabel','previousDateUrl','nextDateUrl','rows'));
+    return view('admin.attendance',compact('pageTitle','currentDateLabel','previousDateUrl','nextDateUrl','rows'));
 }
 
 //勤怠詳細表示
@@ -99,7 +99,7 @@ public function detail($id,DetailService $DetailService){
     $noteLabel = $detail_data['noteLabel'];
     $isPending = $detail_data['isPending'];
 
-    return view('admin.detail',compact('attendance','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','breakRows','noteLabel','isPending'));
+    return view('admin.attendance_detail',compact('attendance','userName','dateYearLabel','dateMonthDayLabel','inAtLabel','outAtLabel','breakRows','noteLabel','isPending'));
 }
 
 //スタッフ一覧表示
@@ -113,22 +113,23 @@ public function staff_list(){
 
     foreach($users as $user){
 
-    $detailUrl = route('admin.staff.attendance',['id' => $user->id]);
+    $detail_url = route('admin.staff.attendance',['user_id' => $user->id]);
 
     $staffs[] = [
         'name' => $user->name,
         'email' => $user->email,
-        'detailUrl' => $detailUrl,
+        'detail_url' => $detail_url,
     ];
     }
 
+    
     return view('admin.staff_index',compact('staffs'));
 }
 
 //スタッフの月別勤怠表示
 public function staff_attendance(
     Request $request,
-    $id,
+    $user_id,
     DateService $dateService,
     AttendanceCalculationService $attendanceCalculationService){
 
@@ -136,7 +137,7 @@ public function staff_attendance(
     $month = $request->month ?? now()->format('Y-m');
 
     //URLのIDを基にユーザー情報を取得
-    $user = User::where('id',$id)->first();
+    $user = User::where('id',$user_id)->first();
 
     //$monthをサービスに渡して、処理結果を$monthDataに格納する
     $monthData = $dateService->getMonth($month);
@@ -149,8 +150,8 @@ public function staff_attendance(
     $nextMonth = $monthData['nextMonth'];
 
     //月を切り替えるURL作成
-    $previousMonthUrl = route('admin.staff.attendance',['id'=> $user->id,'month'=> $previousMonth]);
-    $nextMonthUrl = route('admin.staff.attendance',['id'=> $user->id,'month'=> $nextMonth]);
+    $previousMonthUrl = route('admin.staff.attendance',['user_id'=> $user->id,'month'=> $previousMonth]);
+    $nextMonthUrl = route('admin.staff.attendance',['user_id'=> $user->id,'month'=> $nextMonth]);
 
     $pageTitle = $user->name .'さんの勤怠';
 
@@ -179,7 +180,7 @@ public function staff_attendance(
         $workTimeLabel = $attendance_data['workTimeLabel'];
 
         //1日分の勤怠情報がある場合はURLを作成する
-        $detailUrl = $attendanceOfDay ? route('admin.attendance.detail',['id' => $attendanceOfDay->id]) : null;
+        $detail_url = $attendanceOfDay ? route('admin.attendance.detail',['attendance_id' => $attendanceOfDay->id]) : null;
 
         /*
         勤怠の該当カラムに値があるかどうかを確認してから、整形する
@@ -192,28 +193,32 @@ public function staff_attendance(
             'out_at' => $attendanceOfDay?->out_at ? Carbon::parse($attendanceOfDay->out_at)->format('H:i') : null,
             'break_time' => $breakMinutes === 0 ? null : $breakTimeLabel,
             'work_time' => $workTimeLabel,
-            'detailUrl' => $detailUrl,
+            'detail_url' => $detail_url,
         ];
 
         $date->addDay();
 
     }
 
-    return view('admin.staff_attendance',compact('user','pageTitle','currentMonthLabel','previousMonthUrl','nextMonthUrl','days'));
+    $csvExport_url = route('admin.staff.attendance.csv',['user_id' => $user_id,'month' => $month]);
+
+
+    return view('admin.staff_attendance',compact('user','pageTitle','currentMonthLabel','previousMonthUrl','nextMonthUrl','days','csvExport_url'));
 }
 
-//管理者の手動修正
+//勤怠の手動修正
 public function update(
     AttendanceDetailRequest $request,
-    $id,
+    $attendance_id,
     BreakCalculationService $breakCalculationService){
 
     //$requestの中身を全部取得
     $request_data = $request->all();
 
-    //URLのIDを基に勤怠＆ユーザー＆休憩情報を1件取得
+    //URLのIDを基に勤怠＆ユーザー＆休憩情報の最新版を1件取得
     $attendance = Attendance::with('user','breakTimes')
-            ->where('id',$id)
+            ->where('id',$attendance_id)
+            ->latest('updated_at')
             ->first();
 
     $breakRows = $breakCalculationService->break_array($request_data);
@@ -242,40 +247,80 @@ public function update(
 }
 
 
-public function exportStaffAttendanceCsv(Request $request){
+public function exportCsv(
+    Request $request,
+    $user_id,
+    DateService $dateService,
+    AttendanceCalculationService $attendanceCalculationService){
 
     $month = $request->month ?? now()->format('Y-m');
-    $targetMonth = Carbon::createFromFormat('Y-m', $month);
+    $monthData = $dateService->getMonth($month);
+    $date = $monthData['date'];
+    $lastDate = $monthData['lastDate'];
 
-    $date = $targetMonth->copy()->startOfMonth();
-    $lastDate = $targetMonth->copy()->endOfMonth();
+    $attendance = Attendance::with('user','breakTimes')
+                ->where('user_id',$user_id)
+                ->whereBetween('date',[$date,$lastDate])
+                ->get();
 
-    $week = ['日','月','火','水','木','金','土',];
+    $days = [];
 
     while ($date <= $lastDate){
+
+        //1日分の勤怠情報(最新)を取得
+        $attendanceOfDay = $attendance->sortByDesc('updated_at')->firstWhere('date',$date->format('Y-m-d'));
+
+        //1日分の勤怠情報をサービスに渡して、処理結果を$attendance_dataに格納する
+        $attendance_data = $attendanceCalculationService->attendance_data($attendanceOfDay);
+
+        //サービスから渡された処理結果たち
+        $breakMinutes = $attendance_data['breakMinutes'];
+        $breakTime = $attendance_data['breakTimeLabel'];
+        $workMinutes = $attendance_data['workMinutes'];
+        $workTime = $attendance_data['workTimeLabel'];
+
+        /*
+        勤怠の該当カラムに値があるかどうかを確認してから、整形する
+        休憩時間は0ならNUll
+        */
         $days[] =[
-            'dateLabel' => $date->format('m/d'),
-            'weekLabel' => $week[$date->dayOfWeek],
-            'in_at' => '',
-            'out_at' => '',
-            'break_time' => '',
-            'work_time' => '',
-            'id' => null,
+            'date' => $date->format('Y/m/d'),
+            'in_at' => $attendanceOfDay?->in_at ? Carbon::parse($attendanceOfDay->in_at)->format('H:i') : null,
+            'out_at' => $attendanceOfDay?->out_at ? Carbon::parse($attendanceOfDay->out_at)->format('H:i') : null,
+            'break_time' => $breakMinutes === 0 ? null : $breakTime,
+            'work_time' => $workTime,
         ];
 
         $date->addDay();
+
     }
 
-    $csv ="日付,曜日,出勤時間,退勤時間,休憩時間,合計勤務時間\n";
+    $csvContent = fopen('php://temp', 'r+');
 
-    foreach ($days as $day){
-        $csv .= "{$day['dateLabel']},{$day['weekLabel']},{$day['in_at']},{$day['out_at']},{$day['break_time']},{$day['work_time']}\n";
+    $csvHeader = ['日付','出勤時間','退勤時間','休憩時間','勤務時間'];
+
+    fputcsv($csvContent,$csvHeader);
+
+    foreach($days as $day){
+        fputcsv($csvContent,[
+            $day['date'],
+            $day['in_at'],
+            $day['out_at'],
+            $day['break_time'],
+            $day['work_time'],
+        ]);
     }
+    rewind($csvContent);
 
-    $csvExportUrl = url('/attendance/list/csv') . '?month=' . $month;
+    $csvData = stream_get_contents($csvContent);
+    $sjisData = mb_convert_encoding($csvData,'SJIS-win','UTF-8');
+    fclose($csvContent);
 
+    return response($sjisData, 200, [
+    'Content-Type' => 'text/csv',
+    'Content-Disposition' => 'attachment; filename="' . $month . '勤怠.csv"',
+]);
 
-    return response($csv);
 }
 
 

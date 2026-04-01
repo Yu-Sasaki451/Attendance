@@ -1,20 +1,4 @@
-@extends('layouts.app')
-
-@section('css')
-<link rel="stylesheet" href="{{ asset('css/admin/attendance_detail.css') }}">
-<link rel="stylesheet" href="{{ asset('css/validation.css') }}">
-@endsection
-
-@section('header-menu')
-@include('partials.header.admin')
-@endsection
-
-@section('content')
-<form class="attendance-list {{ $isPending ? 'is-pending' : '' }}"
-    action="{{ route('admin.attendance.update',['id' => $attendance->id]) }}"
-    method="POST">
-    @csrf
-    <h1 class="page-title">勤怠詳細</h1>
+<h1 class="page-title">勤怠詳細</h1>
 
     <table class="attendance-table">
         <tr class="table-row">
@@ -91,11 +75,3 @@
     @else
         <button class="detail-button" type="submit">修正</button>
     @endif
-
-</form>
-@endsection
-
-@section('js')
-<script src="{{ asset('js/common/break-row.js') }}"></script>
-@endsection
-

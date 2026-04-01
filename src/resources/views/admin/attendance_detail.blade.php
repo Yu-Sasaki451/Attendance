@@ -2,20 +2,20 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('css/partials/attendance_detail.css') }}">
+<link rel="stylesheet" href="{{ asset('css/validation.css') }}">
 @endsection
 
 @section('header-menu')
-@include('partials.header.user')
+@include('partials.header.admin')
 @endsection
 
 @section('content')
 <form class="attendance-list {{ $isPending ? 'is-pending' : '' }}"
-    action="{{ route('attendance.detail.update',['attendance_id' => $attendance->id]) }}"
+    action="{{ route('admin.attendance.update',['attendance_id' => $attendance->id]) }}"
     method="POST">
     @csrf
 
 @include('partials.attendance.attendance_detail')
-
 
 
 </form>

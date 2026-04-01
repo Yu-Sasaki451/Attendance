@@ -36,8 +36,8 @@
             <td>{{ $row['break_time'] }}</td>
             <td>{{ $row['work_time'] }}</td>
             <td>
-                @if($row['detailUrl'])
-                <a class="link-detail" href="{{ $row['detailUrl'] }}">詳細</a>
+                @if($row['detail_url'])
+                <a class="link-detail" href="{{ $row['detail_url'] }}">詳細</a>
                 @endif
             </td>
         </tr>

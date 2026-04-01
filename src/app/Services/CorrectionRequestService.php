@@ -24,7 +24,7 @@ class CorrectionRequestService{
                 'reason' => $correctionRequest_pending->reason,
                 'detail_url'=> auth()->user()->role == 'admin' ?
                     route('admin.correction.show',['correction_request_id' => $correctionRequest_pending->id]) :
-                    route('attendance.detail',['id'=> $correctionRequest_pending->attendance->id]),
+                    route('attendance.detail',['attendance_id'=> $correctionRequest_pending->attendance->id]),
             ];
         }
 
@@ -39,7 +39,7 @@ class CorrectionRequestService{
                 'reason' => $correctionRequest_approved->reason,
                 'detail_url'=> auth()->user()->role == 'admin' ?
                     route('admin.correction.show',['correction_request_id' => $correctionRequest_approved->id]) :
-                    route('attendance.detail',['id'=> $correctionRequest_approved->attendance->id]),
+                    route('attendance.detail',['attendance_id'=> $correctionRequest_approved->attendance->id]),
             ];
         }
 

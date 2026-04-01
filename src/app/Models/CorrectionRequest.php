@@ -15,7 +15,6 @@ class CorrectionRequest extends Model
         'requested_out_at',
         'reason',
         'status',
-        'note',
     ];
 
     public function attendance()
