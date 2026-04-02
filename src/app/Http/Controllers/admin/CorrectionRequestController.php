@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CorrectionRequest;
 use App\Models\User;
 use App\Models\BreakTime;
+use App\Models\Attendance;
 use App\Services\DetailService;
 use App\Services\CorrectionRequestService;
 use Carbon\Carbon;
@@ -76,26 +77,28 @@ class CorrectionRequestController extends Controller
         DB::transaction(function() use($request_data,$attendance,$breakRows){
 
             //元の勤怠を申請内容で上書き保存する処理
-            $attendance->in_at = $request_data->requested_in_at;
-            $attendance->out_at = $request_data->requested_out_at;
-            $attendance->note = $request_data->reason;
-            $attendance->save();
+            Attendance::where('id',$attendance->id)->update([
+                'in_at' => $request_data->requested_in_at,
+                'out_at' => $request_data->requested_out_at,
+                'note' => $request_data->reason,
+            ]);
 
             //元の勤怠に紐づく休憩を削除する処理
             $attendance->breakTimes()->delete();
 
             //foreachで休憩の配列を回す→保存する処理
             foreach($breakRows as $index => $breakRow ){
-                $breakTime = new BreakTime;
-                $breakTime->attendance_id = $attendance->id;
-                $breakTime->in_at = $breakRow->requested_in_at;
-                $breakTime->out_at = $breakRow->requested_out_at;
-                $breakTime->save();
+                BreakTime::create([
+                    'attendance_id' => $attendance->id,
+                    'in_at' => $breakRow->requested_in_at,
+                    'out_at' => $breakRow->requested_out_at,
+                ]);
             }
 
             //申請テーブルのステータスを承認済みにして保存する処理
-            $request_data->status = 'approved';
-            $request_data->save();
+            CorrectionRequest::where('id',$request_data->id)->update([
+                'status' => 'approved'
+            ]);
         }
         );
 

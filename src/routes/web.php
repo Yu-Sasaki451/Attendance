@@ -21,7 +21,7 @@ use App\Http\Controllers\Admin\CorrectionRequestController as AdminCorrectionReq
 |
 */
 
-//ユーザー
+//ユーザーとしてログイン
 Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::get('/attendance',[UserAttendanceController::class,'index'])->name('user.attendance');
 

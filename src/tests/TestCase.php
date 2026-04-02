@@ -35,6 +35,7 @@ abstract class TestCase extends BaseTestCase
             'date' => today(),
             'in_at' => null,
             'out_at' => null,
+            'note' => null,
         ], $overrides));
     }
 

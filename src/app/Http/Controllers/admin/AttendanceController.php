@@ -72,17 +72,17 @@ public function index(
 }
 
 //勤怠詳細表示
-public function detail($id,DetailService $DetailService){
+public function detail($attendance_id,DetailService $DetailService){
 
     //URLのIDを元に勤怠＆ユーザー情報、紐づく休憩情報を1件取得
     $attendance = Attendance::with('user','breakTimes')
-        ->where('id',$id)
+        ->where('id',$attendance_id)
         ->first();
 
     //勤怠IDを元に申請情報と紐づく休憩情報(最新)を1件取得
     $correctionRequest = CorrectionRequest::with('breakTimes')
     ->where('attendance_id',$attendance->id)
-    ->latest('created_at')
+    ->where('status','pending')
     ->first();
 
     //2つの変数をサービスに渡して、処理結果を$detail_dataに格納する
@@ -104,13 +104,14 @@ public function detail($id,DetailService $DetailService){
 
 //スタッフ一覧表示
 public function staff_list(){
-    
+
     //roleがユーザーの情報を全て取得
     $users = User::where('role','user')->get();
 
     //foreachで回す前に空配列を用意
     $staffs = [];
 
+    //ユーザー情報とURLを１件ずつ$staffsに格納
     foreach($users as $user){
 
     $detail_url = route('admin.staff.attendance',['user_id' => $user->id]);
@@ -122,7 +123,7 @@ public function staff_list(){
     ];
     }
 
-    
+
     return view('admin.staff_index',compact('staffs'));
 }
 
@@ -221,25 +222,27 @@ public function update(
             ->latest('updated_at')
             ->first();
 
+    //
     $breakRows = $breakCalculationService->break_array($request_data);
 
 
     //トランザクション->どれか一つでも処理が失敗したら元に戻る
     DB::transaction(function () use($attendance,$request_data,$breakRows){
 
-    $attendance->in_at = $attendance->date .' '. $request_data['in_at'];
-    $attendance->out_at = $attendance->date . ' '. $request_data['out_at'];
-    $attendance->note = $request_data['note'];
-    $attendance->save();
+    Attendance::where('id',$attendance->id)->update([
+        'in_at' => $attendance->date .' '. $request_data['in_at'], //2026-03-01 09:00　の形に整形
+        'out_at' => $attendance->date . ' '. $request_data['out_at'], //2026-03-01 09:00　の形に整形
+        'note' => $request_data['note'],
+    ]);
 
     $attendance->breakTimes()->delete();
 
     foreach($breakRows as $index => $breakRow){
-    $breakTime = new BreakTime;
-    $breakTime->attendance_id = $attendance->id;
-    $breakTime->in_at = $attendance->date .' '. $breakRow['in_at'];
-    $breakTime->out_at = $attendance->date .' '. $breakRow['out_at'];
-    $breakTime->save();
+        BreakTime::create([
+            'attendance_id' => $attendance->id,
+            'in_at' => $attendance->date .' '. $breakRow['in_at'],
+            'out_at' => $attendance->date .' '. $breakRow['out_at'],
+        ]);
     }
     });
 
@@ -253,6 +256,7 @@ public function exportCsv(
     DateService $dateService,
     AttendanceCalculationService $attendanceCalculationService){
 
+    //ブレードに表示するのと同じようにデータを用意
     $month = $request->month ?? now()->format('Y-m');
     $monthData = $dateService->getMonth($month);
     $date = $monthData['date'];
@@ -295,12 +299,16 @@ public function exportCsv(
 
     }
 
+    //csvに書き込むための一時保存用変数
     $csvContent = fopen('php://temp', 'r+');
 
+    //csvの見出しに使う
     $csvHeader = ['日付','出勤時間','退勤時間','休憩時間','勤務時間'];
 
+    //第一引数の中に第二引数を書く
     fputcsv($csvContent,$csvHeader);
 
+    //第一引数$csvContentの中に第二引数の$dayを書くのをforeachで回す
     foreach($days as $day){
         fputcsv($csvContent,[
             $day['date'],
@@ -310,18 +318,27 @@ public function exportCsv(
             $day['work_time'],
         ]);
     }
+    //読み取り位置を先頭に戻す
     rewind($csvContent);
 
+    //現在の読み取り位置から最後までを文字列(UTF-8)として取得する
     $csvData = stream_get_contents($csvContent);
+
+    //UTF-8になってる$csvDataをSJIS-winに変換
     $sjisData = mb_convert_encoding($csvData,'SJIS-win','UTF-8');
+
+    //一時保存用変数を閉じる
     fclose($csvContent);
 
+    //変換された$sjisDataを返す
     return response($sjisData, 200, [
+    //これはcsv形式ですよーと言ってる
     'Content-Type' => 'text/csv',
+
+    //アタッチメントでファイル名を設定
     'Content-Disposition' => 'attachment; filename="' . $month . '勤怠.csv"',
 ]);
 
 }
-
 
 }

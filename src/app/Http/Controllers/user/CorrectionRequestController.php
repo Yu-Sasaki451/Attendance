@@ -26,7 +26,7 @@ public function store(
         ->firstOrFail();
 
     /*　
-    出退勤、備考、ステータスを保存する処理
+    申請情報の出退勤、備考、ステータスを保存する処理
     formからは時間しか値がないので、日付＆時間に整形が必要
     ステータスは未承認でpending
     */
@@ -38,10 +38,11 @@ public function store(
         'reason' => $request->input('note'),
     ]);
 
+    //formから送られた$requestの値をサービスに渡して、処理結果を$breakRowsに格納する
     $breakRows = $breakCalculationService->break_array($request);
 
     /*
-    休憩時間を保存する処理
+    申請情報の休憩時間を保存する処理
     $indexで番号を休憩時間に番号をつける
     番号は0から始まるので、+1して１からだよと修正する
     日付＆時間の形に整形する
@@ -62,17 +63,19 @@ public function store(
 //申請一覧を表示
 public function correctionIndex(CorrectionRequestService $correctionRequestService){
 
-
+    //承認待ちの申請情報を取得
     $correctionRequests_pending = CorrectionRequest::with('attendance.user')
         ->whereRelation('attendance','user_id',auth()->id())
         ->where('status','pending')
         ->get();
 
+    //承認済みの申請情報を取得
     $correctionRequests_approved = CorrectionRequest::with('attendance.user')
         ->whereRelation('attendance','user_id',auth()->id())
         ->where('status','approved')
         ->get();
 
+    //承認待ちと承認済みの2つの変数をサービスに渡して、処理結果を$correctionRequestsに格納する　
     $correctionRequests = $correctionRequestService
                 ->correctionRequest($correctionRequests_pending,$correctionRequests_approved);
 
