@@ -115,7 +115,7 @@ class StaffIndexTest extends TestCase
 
         //表示されてほしい前月情報
         $response->assertSee('2026/02'); //前月
-        $response->assertSee('02/10 (' . $this->jpWeekday(Carbon::create(2026, 2, 10)->dayOfWeek) . ')'); //日付と曜日
+        $response->assertSee('02/10 (火)'); //日付と曜日
         $response->assertSee('08:30'); //前月出勤時間
         $response->assertSee('19:00'); //前月退勤時間
         $response->assertSee('0:30'); //前月休憩時間合計
@@ -159,7 +159,7 @@ class StaffIndexTest extends TestCase
 
         //表示されてほしい翌月情報
         $response->assertSee('2026/04'); //翌月
-        $response->assertSee('04/10 (' . $this->jpWeekday(Carbon::create(2026, 4, 10)->dayOfWeek) . ')'); //日付と曜日
+        $response->assertSee('04/10 (金)'); //日付と曜日
         $response->assertSee('10:00'); //翌月出勤時間
         $response->assertSee('19:00'); //翌月退勤時間
         $response->assertSee('0:30'); //翌月休憩時間合計
@@ -167,7 +167,7 @@ class StaffIndexTest extends TestCase
 
         //表示されてほしくない当月情報
         $response->assertDontSee('2026/03'); //当月
-        $response->assertDontSee('03/02 (' . $this->jpWeekday(Carbon::create(2026, 3, 10)->dayOfWeek) . ')');//日付と曜日
+        $response->assertDontSee('03/02 (月)');//日付と曜日
         $response->assertDontSee('09:00'); //当月出勤時間
         $response->assertDontSee('18:00'); //当月退勤時間
         $response->assertDontSee('1:00'); //当月休憩時間合計

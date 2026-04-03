@@ -28,7 +28,7 @@ $week = ['日','月','火','水','木','金','土',];
 $weekDay = $week[now()->dayOfWeek];
 
 //ブレードで表示する時間
-$currentTime = now()->format('h:i');
+$currentTime = now()->format('H:i');
 
 //休憩のテーブルを一緒に取得、条件は日付とユーザーID
 $todayAttendance = Attendance::with('breakTimes')
@@ -244,6 +244,7 @@ public function detail($attendance_id,DetailService $DetailService){
 
     $attendance = Attendance::with(['user','breakTimes'])
         ->where('id',$attendance_id)
+        ->where('user_id', auth()->id())
         ->first();
 
     $correctionRequest = CorrectionRequest::with('breakTimes')

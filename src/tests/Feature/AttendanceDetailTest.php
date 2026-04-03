@@ -13,18 +13,27 @@ class AttendanceDetailTest extends TestCase
 
     //セットアップで使う箱
     private $user;
+    private $attendance;
 
     protected function setUp(): void
     {
         //テスト環境を初期化
         parent::setUp();
 
-        //ユーザーを1人作成
-        $this->user = $this->createRoleUser();
-
         //2つセットで、now()は$fixedNowの時間で固定されるよ
         $fixedNow = Carbon::create(2026, 3, 15, 9, 0, 0, 'Asia/Tokyo');
         Carbon::setTestNow($fixedNow);
+
+        //ユーザーを1人作成
+        $this->user = $this->createRoleUser([
+            'name' => '山田 太郎'
+        ]);
+
+        $this->attendance = $this->createAttendance($this->user,[
+            'date' => '2026-03-10',
+            'in_at' => '2026-03-10 09:00',
+            'out_at' => '2026-03-10 18:00',
+        ]);
     }
 
     protected function tearDown(): void
@@ -36,13 +45,7 @@ class AttendanceDetailTest extends TestCase
 
     public function test_勤怠詳細画面の名前がログインユーザー氏名になる(): void
     {
-        $user = $this->createRoleUser([
-            'name' => '山田 太郎',
-        ]);
-
-        $attendance = $this->createAttendance($user);
-
-        $response = $this->actingAs($user)->get('/attendance/detail/' . $attendance->id);
+            $response = $this->actingAs($this->user)->get('/attendance/detail/' . $this->attendance->id);
         $response->assertStatus(200);
 
         $response->assertSee('名前');
@@ -51,11 +54,8 @@ class AttendanceDetailTest extends TestCase
 
     public function test_勤怠詳細画面の日付が選択した日付になってる(): void
     {
-        $attendance = $this->createAttendance($this->user,[
-            'date' => '2026-03-10'
-        ]);
 
-        $response = $this->actingAs($this->user)->get('/attendance/detail/' . $attendance->id);
+        $response = $this->actingAs($this->user)->get('/attendance/detail/' . $this->attendance->id);
         $response->assertStatus(200);
 
         $response->assertSee('日付');
@@ -65,12 +65,8 @@ class AttendanceDetailTest extends TestCase
 
     public function test_勤怠詳細画面の出退勤時刻が打刻通り(): void
     {
-        $attendance = $this->createAttendance($this->user,[
-            'in_at' => '2026-03-10 09:00',
-            'out_at' => '2026-03-10 18:00',
-        ]);
 
-        $response = $this->actingAs($this->user)->get('/attendance/detail/' . $attendance->id);
+        $response = $this->actingAs($this->user)->get('/attendance/detail/' . $this->attendance->id);
         $response->assertStatus(200);
 
         $response->assertSee('出勤・退勤');
@@ -80,17 +76,14 @@ class AttendanceDetailTest extends TestCase
 
     public function test_勤怠詳細画面の休憩時刻が打刻通り(): void
     {
-        $attendance = $this->createAttendance($this->user,[
-            'in_at' => '2026-03-10 09:00',
-            'out_at' => '2026-03-10 18:00',
-        ]);
+        $attendance = $this->attendance;
 
         $this->createBreakTime($attendance, [
             'in_at' => '2026-03-10 10:00',
             'out_at' => '2026-03-10 12:00',
         ]);
 
-        $response = $this->actingAs($this->user)->get('/attendance/detail/' . $attendance->id);
+        $response = $this->actingAs($this->user)->get('/attendance/detail/' . $this->attendance->id);
         $response->assertStatus(200);
 
         $response->assertSee('休憩');
