@@ -58,7 +58,7 @@ public function index(
         $workTimeLabel = $attendance_data['workTimeLabel'];
         $detail_url = route('admin.attendance.detail',['attendance_id' => $attendance->id]);
 
-    $rows [] =[
+        $rows [] =[
         'name' => $attendance->user->name,
         'in_at' => $attendance->in_at ? Carbon::parse($attendance->in_at)->format('H:i') :null,
         'out_at' => $attendance->out_at ? Carbon::parse($attendance->out_at)->format('H:i') :null,

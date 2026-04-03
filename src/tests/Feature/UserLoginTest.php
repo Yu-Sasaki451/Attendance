@@ -20,69 +20,64 @@ class UserLoginTest extends TestCase
         //テストする環境を初期化
         parent::setUp();
 
+        $password = '12345678';
+
         //ユーザーを1人作る、パスワードを設定する
         $this->user = $this->createRoleUser([
-            'password' => bcrypt('12345678'),
+            'password' => bcrypt($password),
         ]);
 
         //アドレスとパスワードを設定する
         $this->data = [
             'email' => $this->user->email,
-            'password' => '12345678',
+            'password' => $password,
         ];
     }
 
     public function test_メールアドレス未入力(){
-        $data = $this->data;
-        $data['email'] = '';
+        $this->data['email'] = '';
 
         $this->from('/login')
-        ->post('/login',$data)
+        ->post('/login',$this->data)
         ->assertSessionHasErrors(['email' => 'メールアドレスを入力してください']);
     }
 
     public function test_パスワード未入力(){
-        $data = $this->data;
-        $data['password'] = '';
+        $this->data['password'] = '';
 
         $this->from('/login')
-        ->post('/login',$data)
+        ->post('/login',$this->data)
         ->assertSessionHasErrors(['password' => 'パスワードを入力してください']);
     }
 
     public function test_メールアドレス形式不正(){
-        $data = $this->data;
-        $data['email'] = 'test1234';
+        $this->data['email'] = 'test1234';
 
         $this->from('/login')
-        ->post('/login',$data)
+        ->post('/login',$this->data)
         ->assertSessionHasErrors(['email' => 'アドレス形式で入力してください']);
     }
 
     public function test_メールアドレス不一致(){
-        $data = $this->data;
-        $data['email'] = 'tes@exam.com';
+        $this->data['email'] = 'tes@exam.com';
 
         $response = $this->from('/login')
-            ->post('/login',$data)
+            ->post('/login',$this->data)
             ->assertSessionHasErrors(['email' => 'ログイン情報が登録されていません。']);
 
     }
 
     public function test_パスワード不一致(){
-        $data = $this->data;
-        $data['password'] = '23456895';
+        $this->data['password'] = '23456895';
 
         $response = $this->from('/login')
-            ->post('/login',$data)
+            ->post('/login',$this->data)
             ->assertSessionHasErrors(['email' => 'ログイン情報が登録されていません。']);
 
     }
 
     public function test_ログイン成功()
-    {
-        $data = $this->data;
-        $this->post('/login', $data)
+    {    $this->post('/login', $this->data)
             ->assertRedirect('/attendance');
 
         $this->assertAuthenticatedAs($this->user);

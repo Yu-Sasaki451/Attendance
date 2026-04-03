@@ -28,7 +28,7 @@ abstract class TestCase extends BaseTestCase
     }
 
     /* -----勤怠情報の土台----- */
-    protected function createAttendanceFor(User $user, array $overrides = []): Attendance
+    protected function createAttendance(User $user, array $overrides = []): Attendance
     {
         return Attendance::create(array_merge([
             'user_id' => $user->id,
@@ -40,7 +40,7 @@ abstract class TestCase extends BaseTestCase
     }
 
     /* -----休憩情報の土台-----　*/
-    protected function createBreakTimeFor(Attendance $attendance,array $overrides = []): BreakTime
+    protected function createBreakTime(Attendance $attendance,array $overrides = []): BreakTime
     {
         return BreakTime::create(array_merge([
             'attendance_id' => $attendance->id,

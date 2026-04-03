@@ -10,87 +10,63 @@ class AdminLoginTest extends TestCase
     use RefreshDatabase;
 
     private $admin;
+    private $data;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        $password = '12345678';
+
         $this->admin = $this->createRoleAdmin([
-            'password' => bcrypt('12345678'),
+            'password' => bcrypt($password),
         ]);
+
+        $this->data =[
+            'email' => $this->admin->email,
+            'password' => $password,
+            'login_type' => 'admin',
+        ];
     }
 
     public function test_メールアドレス未入力(){
-        $data = [
-            'email' => $this->admin->email,
-            'password' => '12345678',
-            'login_type' => 'admin',
-        ];
-        $data['email'] = '';
+        $this->data['email'] = '';
 
         $this->from('/admin/login')
-        ->post('/login',$data)
+        ->post('/login',$this->data)
         ->assertSessionHasErrors(['email' => 'メールアドレスを入力してください']);
     }
 
     public function test_パスワード未入力(){
-        $data = [
-            'email' => $this->admin->email,
-            'password' => '12345678',
-            'login_type' => 'admin',
-        ];
-        $data['password'] = '';
+        $this->data['password'] = '';
 
         $this->from('/admin/login')
-        ->post('/login',$data)
+        ->post('/login',$this->data)
         ->assertSessionHasErrors(['password' => 'パスワードを入力してください']);
     }
 
     public function test_メールアドレス不一致(){
-        $data = [
-            'email' => $this->admin->email,
-            'password' => '12345678',
-            'login_type' => 'admin',
-        ];
-        $data['email'] = 'test@exam.com';
+        $this->data['email'] = 'test@exam.com';
 
         $response = $this->from('/admin/login')
-            ->post('/login',$data);
-        $response->assertSessionHasErrors(['email']);
-        $this->assertStringContainsString(
-            'ログイン情報が登録されていません',
-            session('errors')->first('email')
-        );
+            ->post('/login',$this->data);
+        $response->assertSessionHasErrors(['email' => 'ログイン情報が登録されていません。']);
 
     }
 
     public function test_パスワード不一致(){
-        $data = [
-            'email' => $this->admin->email,
-            'password' => '12345678',
-            'login_type' => 'admin',
-        ];
-        $data['password'] = '12345689';
+        $this->data['password'] = '12345689';
 
         $response = $this->from('/admin/login')
-            ->post('/login',$data);
+            ->post('/login',$this->data);
         $response->assertSessionHasErrors(['email']);
-        $this->assertStringContainsString(
-            'ログイン情報が登録されていません',
-            session('errors')->first('email')
-        );
+        $response->assertSessionHasErrors(['email' => 'ログイン情報が登録されていません。']);
 
     }
 
     public function test_ログイン成功()
     {
-        $data = [
-            'email' => $this->admin->email,
-            'password' => '12345678',
-            'login_type' => 'admin',
-        ];
-
-        $this->post('/login', $data)
+        $this->post('/login', $this->data)
             ->assertRedirect('/admin/attendance/list');
 
         $this->assertAuthenticatedAs($this->admin);

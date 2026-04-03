@@ -29,81 +29,73 @@ class RegisterTest extends TestCase
 
     public function test_名前未入力(){
 
-        $data = $this->data;
-        $data['name'] = '';
+        $this->data['name'] = '';
 
         $this->from('/register')
-        ->post('/register',$data)
+        ->post('/register',$this->data)
         ->assertSessionHasErrors(['name' => 'お名前を入力してください']);
     }
 
     public function test_メールアドレス未入力(){
 
-        $data = $this->data;
-        $data['email'] = '';
+        $this->data['email'] = '';
 
         $this->from('/register')
-        ->post('/register',$data)
+        ->post('/register',$this->data)
         ->assertSessionHasErrors(['email' => 'メールアドレスを入力してください']);
     }
 
     public function test_名前が20文字超過(){
 
-        $data = $this->data;
-        $data['name'] = '123456789012345678901';
+        $this->data['name'] = '123456789012345678901';
 
         $this->from('/register')
-        ->post('/register',$data)
+        ->post('/register',$this->data)
         ->assertSessionHasErrors(['name' => '20文字以内で入力してください']);
     }
 
     public function test_メールアドレス形式不正(){
 
-        $data = $this->data;
-        $data['email'] = 'test123';
+        $this->data['email'] = 'test123';
 
         $this->from('/register')
-        ->post('/register',$data)
+        ->post('/register',$this->data)
         ->assertSessionHasErrors(['email' => 'アドレス形式で入力してください']);
     }
 
     public function test_パスワード未入力(){
 
-        $data = $this->data;
-        $data['password'] = '';
-        $data['password_confirmation'] = '';
+        $this->data['password'] = '';
+        $this->data['password_confirmation'] = '';
 
         $this->from('/register')
-        ->post('/register',$data)
+        ->post('/register',$this->data)
         ->assertSessionHasErrors(['password' => 'パスワードを入力してください']);
     }
 
     public function test_パスワード8文字未満(){
 
-        $data = $this->data;
-        $data['password'] = '1234567';
-        $data['password_confirmation'] = '1234567';
+        $this->data['password'] = '1234567';
+        $this->data['password_confirmation'] = '1234567';
 
         $this->from('/register')
-        ->post('/register',$data)
+        ->post('/register',$this->data)
         ->assertSessionHasErrors(['password' => 'パスワードは8文字以上で入力してください']);
     }
 
     public function test_パスワード不一致(){
 
-        $data = $this->data;
-        $data['password'] = '1234567';
-        $data['password_confirmation'] = '7654321';
+        $this->data['password'] = '1234567';
+        $this->data['password_confirmation'] = '7654321';
 
         $this->from('/register')
-        ->post('/register',$data)
+        ->post('/register',$this->data)
         ->assertSessionHasErrors(['password' => 'パスワードと一致しません']);
     }
 
     public function test_登録(){
 
-        $data = $this->data;
-        $this->post('/register',$data)
+        $this->post('/register',$this->data)
         ->assertRedirect('/attendance');
     }
 }

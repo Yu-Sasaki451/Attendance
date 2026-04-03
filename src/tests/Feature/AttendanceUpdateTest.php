@@ -21,11 +21,15 @@ class AttendanceUpdateTest extends TestCase
         //テスト環境を初期化
         parent::setUp();
 
+        //2つセットで、now()は$fixedNowの時間で固定されるよ
+        $fixedNow = Carbon::create(2026, 3, 15, 9, 0, 0, 'Asia/Tokyo');
+        Carbon::setTestNow($fixedNow);
+
         //ユーザーを1人作成
         $this->user = $this->createRoleUser();
 
         //ユーザーの勤怠情報を作成
-        $this->attendance = $this->createAttendanceFor($this->user, [
+        $this->attendance = $this->createAttendance($this->user, [
             'date' => '2026-03-10',
             'in_at' => '2026-03-10 09:00',
             'out_at' => '2026-03-10 18:00',
@@ -33,14 +37,10 @@ class AttendanceUpdateTest extends TestCase
         ]);
 
         //ユーザーの休憩情報を作成 勤怠情報に紐付けること
-        $this->breakTime = $this->createBreakTimeFor($this->attendance,[
+        $this->breakTime = $this->createBreakTime($this->attendance,[
             'in_at' => '2026-03-10 11:00',
             'out_at' => '2026-03-10 12:00',
         ]);
-
-        //2つセットで、now()は$fixedNowの時間で固定されるよ
-        $fixedNow = Carbon::create(2026, 3, 15, 9, 0, 0, 'Asia/Tokyo');
-        Carbon::setTestNow($fixedNow);
     }
 
     protected function tearDown(): void
@@ -51,12 +51,11 @@ class AttendanceUpdateTest extends TestCase
     }
 
     public function test_出勤時間を退勤時間より遅く修正申請してエラーメッセージ表示(){
-        $attendance = $this->attendance;
 
         //ログイン後、出勤時間を19：00で送信
         $response = $this->actingAs($this->user)
-            ->from('/attendance/detail/' . $attendance->id)
-            ->post('/attendance/detail/' . $attendance->id, [
+            ->from('/attendance/detail/' . $this->attendance->id)
+            ->post('/attendance/detail/' . $this->attendance->id, [
             'in_at' => '19:00',
             'out_at' => '18:00',
             'note' => 'テスト用備考',
@@ -68,13 +67,11 @@ class AttendanceUpdateTest extends TestCase
     }
 
     public function test_休憩開始時間を退勤時間より遅く修正申請してエラーメッセージ表示(){
-        $attendance = $this->attendance;
-        $breakTime = $this->breakTime;
 
         //ログイン後、休憩開始時間を19：00で送信
         $response = $this->actingAs($this->user)
-            ->from('/attendance/detail/' . $attendance->id)
-            ->post('/attendance/detail/' . $attendance->id,[
+            ->from('/attendance/detail/' . $this->attendance->id)
+            ->post('/attendance/detail/' . $this->attendance->id,[
             'in_at' => '09:00',
             'out_at' => '18:00',
             'break_in_at' => ['19:00'],
@@ -88,13 +85,11 @@ class AttendanceUpdateTest extends TestCase
     }
 
     public function test_休憩終了時間を退勤時間より遅く修正申請してエラーメッセージ表示(){
-        $attendance = $this->attendance;
-        $breakTime = $this->breakTime;
 
         //ログイン後、休憩終了時間を19：３０で送信
         $response = $this->actingAs($this->user)
-            ->from('/attendance/detail/' . $attendance->id)
-            ->post('/attendance/detail/' . $attendance->id,[
+            ->from('/attendance/detail/' . $this->attendance->id)
+            ->post('/attendance/detail/' . $this->attendance->id,[
             'in_at' => '09:00',
             'out_at' => '18:00',
             'break_in_at' => ['11:00'],
@@ -108,12 +103,11 @@ class AttendanceUpdateTest extends TestCase
     }
 
     public function test_備考欄空白で修正申請してエラーメッセージ表示(){
-        $attendance = $this->attendance;
 
         //ログイン後、備考を空白で送信
         $response = $this->actingAs($this->user)
-            ->from('/attendance/detail/' . $attendance->id)
-            ->post('/attendance/detail/' . $attendance->id, [
+            ->from('/attendance/detail/' . $this->attendance->id)
+            ->post('/attendance/detail/' . $this->attendance->id, [
             'in_at' => '09:00',
             'out_at' => '18:00',
             'note' => '',
@@ -125,12 +119,11 @@ class AttendanceUpdateTest extends TestCase
     }
 
     public function test_備考欄が100文字超過で修正申請してエラーメッセージ表示(){
-        $attendance = $this->attendance;
 
         //ログイン後、備考を101文字で送信
         $response = $this->actingAs($this->user)
-            ->from('/attendance/detail/' . $attendance->id)
-            ->post('/attendance/detail/' . $attendance->id, [
+            ->from('/attendance/detail/' . $this->attendance->id)
+            ->post('/attendance/detail/' . $this->attendance->id, [
             'in_at' => '09:00',
             'out_at' => '18:00',
             'note' => str_repeat('あ', 101),
@@ -142,14 +135,11 @@ class AttendanceUpdateTest extends TestCase
     }
 
     public function test_正しい情報で修正申請して承認待ちに表示される(){
-    
-        $attendance = $this->attendance;
-        $breakTime = $this->breakTime;
 
         //ログイン後、正しい値で送信
         $response = $this->actingAs($this->user)
-            ->from('/attendance/detail/' . $attendance->id)
-            ->post('/attendance/detail/' . $attendance->id,[
+            ->from('/attendance/detail/' . $this->attendance->id)
+            ->post('/attendance/detail/' . $this->attendance->id,[
             'in_at' => '08:00',
             'out_at' => '20:00',
             'break_in_at' => ['12:00'],
@@ -170,13 +160,11 @@ class AttendanceUpdateTest extends TestCase
     public function test_承認された申請が承認済みに表示される(){
 
         $admin = $this->createRoleAdmin();
-        $attendance = $this->attendance;
-        $breakTime = $this->breakTime;
 
         //ログイン後、正しい値で送信
         $this->actingAs($this->user)
-            ->from('/attendance/detail/' . $attendance->id)
-            ->post('/attendance/detail/' . $attendance->id, [
+            ->from('/attendance/detail/' . $this->attendance->id)
+            ->post('/attendance/detail/' . $this->attendance->id, [
             'in_at' => '08:00',
             'out_at' => '20:00',
             'break_in_at' => ['12:00'],
@@ -185,7 +173,7 @@ class AttendanceUpdateTest extends TestCase
         ]);
 
         //$attendance_idを基に、未承認の修正申請情報を１件取得する
-        $correctionRequest = \App\Models\CorrectionRequest::where('attendance_id', $attendance->id)
+        $correctionRequest = \App\Models\CorrectionRequest::where('attendance_id', $this->attendance->id)
             ->where('status', 'pending')
             ->first();
 
@@ -205,13 +193,11 @@ class AttendanceUpdateTest extends TestCase
     }
 
     public function test_申請一覧の詳細を押すと勤怠詳細に遷移する(){
-        $attendance = $this->attendance;
-        $breakTime = $this->breakTime;
 
         //ログイン後、正しい値で送信
         $response = $this->actingAs($this->user)
-            ->from('/attendance/detail/' . $attendance->id)
-            ->post('/attendance/detail/' . $attendance->id,[
+            ->from('/attendance/detail/' . $this->attendance->id)
+            ->post('/attendance/detail/' . $this->attendance->id,[
             'in_at' => '08:00',
             'out_at' => '20:00',
             'break_in_at' => ['12:00'],
@@ -224,10 +210,10 @@ class AttendanceUpdateTest extends TestCase
         $response->assertStatus(200);
 
         //詳細リンクがあることを確認
-        $response->assertSee('/attendance/detail/' . $attendance->id, false);
+        $response->assertSee('/attendance/detail/' . $this->attendance->id, false);
 
         //
-        $response = $this->get('/attendance/detail/' . $attendance->id);
+        $response = $this->get('/attendance/detail/' . $this->attendance->id);
         $response->assertStatus(200);
         $response->assertSee($this->user->name);
         $response->assertSee('2026年');
