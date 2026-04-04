@@ -11,19 +11,18 @@
     background-color: white;
     border-radius: 10px;
     margin-top: 40px;
+    border-collapse: collapse;
 }
 
 .attendance-table th,
 .attendance-table td {
-    padding-top: 6px;
-    padding-bottom: 0;
+    vertical-align: middle;
 }
 
 .attendance-table th {
     padding-left: 50px;
     padding-right: 50px;
     color: gray;
-    transform: translateY(-5px);
     text-align: left;
 }
 
@@ -38,21 +37,26 @@
     border-top: 1px solid gainsboro;
 }
 
+.table-row--name {
+    border-top: none;
+}
+
 .table-row--note {
-    border-top: 1px solid gainsboro;
     height: 116px;
 }
 
-.detail-name-row,
-.detail-inline-row,
-.detail-field {
+.detail-row {
     width: 280px;
-}
-
-.detail-inline-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.detail-field {
+    width: 280px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
 }
 
 .detail-date-text {
@@ -78,14 +82,7 @@
 }
 
 
-.note-col .detail-field {
-    display: flex;
-    justify-content: center;
-    padding-top: 0;
-}
-
-
-.note-col .detail-textarea {
+.note-row .detail-textarea {
     min-height: auto;
     padding-top: 0;
     padding-bottom: 0;
@@ -109,13 +106,6 @@
     display: none;
 }
 
-.detail-field {
-    display: grid;
-    height: 100%;
-    padding-top: 6px;
-}
-
-
 .validate-error {
     min-height: 1.2em;
     font-size: 12px;
@@ -128,19 +118,7 @@
     justify-content: right;
 }
 
-.isPending .detail-button {
-    width: 100px;
-    margin: 24px 0 0 auto;
-    padding: 10px 6px;
-    border: none;
-    border-radius: 4px;
-    background-color: #000;
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.detail-button {
+.button-approved {
     width: 100px;
     margin: 24px 0 0 auto;
     padding: 10px 6px;
@@ -152,6 +130,21 @@
     font-size: 16px;
     cursor: pointer;
 }
+
+.approve-button {
+    width: 100px;
+    margin: 24px 0 0 auto;
+    padding: 10px 6px;
+    border: none;
+    letter-spacing: 4px;
+    border-radius: 4px;
+    background-color: #000;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
 
 .detail-pending-text {
     margin: 24px 0 0 auto;
