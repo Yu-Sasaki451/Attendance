@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="{{ asset('css/partials/attendance_detail.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin/request_approved.css') }}">
 <link rel="stylesheet" href="{{ asset('css/validation.css') }}">
 @endsection
 
@@ -13,7 +13,7 @@
 <form class="attendance-list"
     action="{{ route('admin.correction.approve',['correction_request_id' => $correctionRequest->id]) }}"
     method="POST">
-    @csrf    
+    @csrf
     <h1 class="page-title">勤怠詳細</h1>
 
     <table class="attendance-table">
@@ -86,13 +86,13 @@
         </tr>
     </table>
 
-    
-
+    <div class="approved-item">
     @if($isPending)
         <button class="detail-button" type="submit">承認</button>
     @else
-        <p>承認済み</p>
+        <button class="detail-button">承認済み</button>
     @endif
+    </div>
 
 </form>
 @endsection

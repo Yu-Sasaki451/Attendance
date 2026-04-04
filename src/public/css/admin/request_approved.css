@@ -74,23 +74,18 @@
     padding: 4px 10px;
     font-size: 16px;
     background-color: #fff;
-}
-
-/*　isPendingの状態　*/
-.is-pending .detail-input,
-.is-pending .detail-textarea {
     border: none;
 }
 
-/*　isPendingの状態　*/
-.is-pending .note-col .detail-field {
+
+.note-col .detail-field {
     display: flex;
     justify-content: center;
     padding-top: 0;
 }
 
-/*　isPendingの状態　*/
-.is-pending .note-col .detail-textarea {
+
+.note-col .detail-textarea {
     min-height: auto;
     padding-top: 0;
     padding-bottom: 0;
@@ -128,16 +123,33 @@
     color: red;
 }
 
-.detail-button {
-    display: block;
-    width: 120px;
+.approved-item {
+    display: flex;
+    justify-content: right;
+}
+
+.isPending .detail-button {
+    width: 100px;
     margin: 24px 0 0 auto;
-    padding: 10px 16px;
+    padding: 10px 6px;
     border: none;
     border-radius: 4px;
     background-color: #000;
     color: #fff;
-    font-size: 14px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.detail-button {
+    width: 100px;
+    margin: 24px 0 0 auto;
+    padding: 10px 6px;
+    letter-spacing: 4px;
+    border: none;
+    border-radius: 4px;
+    background-color: gray;
+    color: #fff;
+    font-size: 16px;
     cursor: pointer;
 }
 
@@ -148,6 +160,8 @@
     font-weight: 700;
     text-align: right;
 }
+
+
 
 
 /* ========== ここから下はタブレット用 ==========*/
