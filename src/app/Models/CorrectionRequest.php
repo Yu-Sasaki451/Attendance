@@ -26,9 +26,4 @@ class CorrectionRequest extends Model
     {
         return $this->hasMany(CorrectionRequestBreakTime::class);
     }
-
-    public function correctionLog()
-    {
-        return $this->hasOne(CorrectionLog::class);
-    }
 }

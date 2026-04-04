@@ -6,22 +6,6 @@
     padding-bottom: 32px;
 }
 
-.export-button {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
-}
-
-
-.export-link {
-    color: white;
-    font-weight: 700;
-    text-decoration: none;
-    background-color: #000;
-    padding: 8px 24px;
-    border-radius: 8px;
-}
-
 .month-nav {
     display: flex;
     align-items: center;
@@ -65,6 +49,25 @@
 
 .table-row {
     border-top: 1px solid gainsboro;
+}
+
+.export-button {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 900px;
+    margin: 4px auto;
+    padding-bottom: 30px;
+}
+
+
+.export-link {
+    color: white;
+    font-weight: 700;
+    text-decoration: none;
+    background-color: #000;
+    padding: 8px 24px;
+    border-radius: 8px;
 }
 
 /* ========== ここから下はタブレット用 ==========*/

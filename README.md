@@ -53,6 +53,7 @@ docker compose up -d --build
 ```bash
 docker compose exec php bash
 ```
+
 ```bash
 composer install
 cp .env.example .env
@@ -94,8 +95,6 @@ php artisan migrate --seed
 
 ### 4. JavaScript テストの初期設定
 
-JavaScript テストを実行する場合は、`node` コンテナ内で依存パッケージをインストールしてください。
-
 ```bash
 docker compose exec node npm install
 ```
@@ -114,7 +113,7 @@ docker compose exec node npm install
 - メールアドレス: `user1@test.com`
 - パスワード: `user1234`
 
-ほかにも `user2@test.com` から `user5@test.com` まで同じパスワードで作成されます。
+`user2@test.com` から `user5@test.com` まで同じパスワードです。
 
 ## 動作確認 URL
 
