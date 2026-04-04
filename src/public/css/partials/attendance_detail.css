@@ -11,19 +11,18 @@
     background-color: white;
     border-radius: 10px;
     margin-top: 40px;
+    border-collapse: collapse;
 }
 
 .attendance-table th,
 .attendance-table td {
-    padding-top: 6px;
-    padding-bottom: 0;
+    vertical-align: middle;
 }
 
 .attendance-table th {
     padding-left: 50px;
     padding-right: 50px;
     color: gray;
-    transform: translateY(-5px);
     text-align: left;
 }
 
@@ -38,21 +37,26 @@
     border-top: 1px solid gainsboro;
 }
 
+.table-row--name {
+    border-top: none;
+}
+
 .table-row--note {
-    border-top: 1px solid gainsboro;
     height: 116px;
 }
 
-.detail-name-row,
-.detail-inline-row,
-.detail-field {
+.detail-row {
     width: 280px;
-}
-
-.detail-inline-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.detail-field {
+    width: 280px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
 }
 
 .detail-date-text {
@@ -76,27 +80,6 @@
     background-color: #fff;
 }
 
-/*　isPendingの状態　*/
-.is-pending .detail-input,
-.is-pending .detail-textarea {
-    border: none;
-}
-
-/*　isPendingの状態　*/
-.is-pending .note-col .detail-field {
-    display: flex;
-    justify-content: center;
-    padding-top: 0;
-}
-
-/*　isPendingの状態　*/
-.is-pending .note-col .detail-textarea {
-    min-height: auto;
-    padding-top: 0;
-    padding-bottom: 0;
-    resize: none;
-}
-
 .detail-textarea {
     display: block;
     min-height: 80px;
@@ -109,17 +92,39 @@
     font-size: 20px;
 }
 
-/*　時計アイコンを表示しない　*/
-.detail-input::-webkit-calendar-picker-indicator {
-    display: none;
-}
-
 .detail-field {
     display: grid;
     height: 100%;
     padding-top: 6px;
 }
 
+/*　isPendingの状態　*/
+.is-pending .detail-input,
+.is-pending .detail-textarea {
+    border: none;
+}
+
+/*　isPendingの状態　*/
+.is-pending .note-row .detail-field {
+    display: flex;
+    justify-content: center;
+    padding-top: 0;
+}
+
+/*　isPendingの状態　*/
+.is-pending .note-row .detail-textarea {
+    min-height: auto;
+    padding-top: 0;
+    padding-bottom: 0;
+    resize: none;
+}
+
+
+
+/*　時計アイコンを表示しない　*/
+.detail-input::-webkit-calendar-picker-indicator {
+    display: none;
+}
 
 .validate-error {
     min-height: 1.2em;
