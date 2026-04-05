@@ -40,9 +40,9 @@
             <td class="in-row">
                 <div class="detail-field">
                     <div class="detail-row">
-                        <input class="detail-input" type="time" name="in_at" value="{{ $inAtLabel }}">
+                        <input class="detail-input" type="time" name="in_at" value="{{ $inAtLabel }}" readonly>
                         <span class="detail-time-separator">〜</span>
-                        <input class="detail-input" type="time" name="out_at" value="{{ $outAtLabel }}">
+                        <input class="detail-input" type="time" name="out_at" value="{{ $outAtLabel }}" readonly>
                     </div>
                     <div class="validate-error">
                         @error('attendance_time')
@@ -58,9 +58,9 @@
             <td class="break-row">
                 <div class="detail-field">
                     <div class="detail-row">
-                        <input class="detail-input js-break-in" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}">
+                        <input class="detail-input js-break-in" type="time" name="break_in_at[]" value="{{ $breakRow['in_at'] }}" readonly>
                         <span class="detail-time-separator">〜</span>
-                        <input class="detail-input js-break-out" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}">
+                        <input class="detail-input js-break-out" type="time" name="break_out_at[]" value="{{ $breakRow['out_at'] }}" readonly>
                     </div>
                     <div class="validate-error">
                         @error("break_time.$loop->index")
@@ -75,7 +75,7 @@
             <th class="note-row">備考</th>
             <td class="note-row">
                 <div class="detail-field">
-                    <textarea class="detail-textarea" name="note">{{ $noteLabel }}</textarea>
+                    <textarea class="detail-textarea" name="note" readonly>{{ $noteLabel }}</textarea>
                     <div class="validate-error">
                         @error('note')
                         {{ $message }}
