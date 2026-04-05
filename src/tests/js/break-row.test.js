@@ -8,7 +8,7 @@ describe('break-row', () => {
             <table>
             <tbody>
                 <tr class="js-break-row">
-                    <td class="break-col">休憩1</td>
+                    <td class="break-row">休憩1</td>
                     <td>
                         <input class="js-break-in" type="time" value="">
                     </td>
