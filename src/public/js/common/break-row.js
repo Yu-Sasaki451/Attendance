@@ -9,7 +9,7 @@ document.addEventListener('input', function (e) {
     if (!inAt || !outAt) return;
 
     const newRow = lastRow.cloneNode(true);
-    newRow.querySelector('.break-col').textContent = `休憩${rows.length + 1}`;
+    newRow.querySelector('.break-row').textContent = `休憩${rows.length + 1}`;
     newRow.querySelector('.js-break-in').value = '';
     newRow.querySelector('.js-break-out').value = '';
     newRow.querySelector('.validate-error').textContent = '';
