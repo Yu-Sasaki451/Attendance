@@ -249,6 +249,7 @@ public function detail($attendance_id,DetailService $DetailService){
 
     $correctionRequest = CorrectionRequest::with('breakTimes')
         ->where('attendance_id',$attendance->id)
+        ->where('status','pending')
         ->latest('created_at')
         ->first();
 
